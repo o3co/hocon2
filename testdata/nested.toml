@@ -1,0 +1,6 @@
+[database]
+  host = "localhost"
+  port = 5432
+  [database.connection]
+    pool_size = 10
+    timeout = 30

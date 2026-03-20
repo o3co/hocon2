@@ -1,0 +1,5 @@
+base_url = "https://api.example.com"
+
+[endpoints]
+  posts = "https://api.example.com/posts"
+  users = "https://api.example.com/users"
