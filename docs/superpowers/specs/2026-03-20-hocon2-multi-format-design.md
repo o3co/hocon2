@@ -78,10 +78,21 @@ func Run(name string, enc Encoder, args []string, stdin io.Reader, stdout, stder
 ```
 
 `Run()` の処理フロー:
-1. 引数判定: 0個 → stdin、1個 → file（`-h`/`--help` はヘルプ表示）、2個以上 → エラー
-2. `hocon.ParseString()` or `hocon.ParseFile()` で Config を取得
+
+1. 引数判定: 0個 → stdin、`-h`/`--help` → ヘルプ表示、1個以上 → ファイル（複数可）
+2. HOCON パース:
+   - 0個: `hocon.ParseString(stdin)` で Config を取得
+   - 1個: `hocon.ParseFile(args[0])` で Config を取得
+   - 2個以上: 各ファイルを `hocon.ParseFile()` でパースし、右優先で `WithFallback` マージ
+     - `hocon2json base.conf override.conf` → `override.WithFallback(base)` — 後のファイルが優先
 3. `cfg.Unmarshal(&map[string]any{})` で中間表現に変換
 4. `enc.Encode(stdout, data)` で出力
+
+**複数ファイルのマージセマンティクス:**
+- 位置引数で複数ファイルを受け取る: `hocon2json base.conf env.conf local.conf`
+- 右優先（後のファイルが上書き）: `local > env > base`
+- 内部的には右から左へ `WithFallback` を適用: `local.WithFallback(env.WithFallback(base))`
+- stdin とファイルの混合は非サポート（0個なら stdin、1個以上なら全てファイル）
 
 ### Encoder Implementations
 
@@ -149,7 +160,7 @@ map[string]any → flatten.Flatten() → map[string]string → properties.LoadMa
 |---|---|---|
 | Unit tests | `internal/convert/convert_test.go` | Table-driven golden tests: 各 Encoder × 各 testdata |
 | Flatten tests | `internal/flatten/flatten_test.go` | ネスト、配列、空値、型変換のエッジケース |
-| CLI integration | `internal/convert/integration_test.go` | `exec.Command` でバイナリを実行し、stdin/file/help/error を検証 |
+| CLI integration | `internal/convert/integration_test.go` | `exec.Command` でバイナリを実行し、stdin/file/help/error/複数ファイルマージ を検証 |
 
 ### Golden Test Pattern
 
