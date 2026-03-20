@@ -60,6 +60,28 @@ hocon2toml base.conf env.conf local.conf
 
 This is equivalent to `local.conf` overriding `env.conf`, which overrides `base.conf`. Useful for layered configuration (base → environment → local overrides).
 
+### Environment variables
+
+HOCON substitutions (`${VAR}`) resolve against environment variables:
+
+```bash
+# Pass environment variables inline
+DB_HOST=prod-db.example.com hocon2json app.conf
+
+# Or export them
+export DB_HOST=prod-db.example.com
+hocon2json app.conf
+```
+
+Given `app.conf`:
+
+```hocon
+database {
+  host = ${DB_HOST}
+  host = ${?DB_HOST}  # optional: use only if DB_HOST is set
+}
+```
+
 ### Example
 
 Given `app.conf`:
