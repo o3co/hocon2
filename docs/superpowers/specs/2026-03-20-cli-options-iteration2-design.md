@@ -114,6 +114,7 @@ func (e *JSONEncoder) RegisterFlags(fs *flag.FlagSet) {
 - `-indent N` → N スペースインデント（有効範囲: 1〜16。範囲外はエラー）
 - `-indent 0` は許可しない（compact と紛らわしいため `-compact` を使うこと）
 - `-compact` + `-indent` 両方指定 → `-compact` が優先
+- **バリデーション場所:** `JSONEncoder.Encode()` の先頭で検証。`-compact` が指定されていない場合のみ `-indent` の範囲チェック（1〜16）を行い、範囲外なら `fmt.Errorf("invalid indent value %d: must be between 1 and 16", e.Indent)` を返す
 
 **他のエンコーダー:** 変更なし。`FlagRegistrar` を実装しない。
 
@@ -154,6 +155,12 @@ Options:
 ```
 
 フォーマット固有オプションは `FlagRegistrar` 経由で登録されたものだけ表示される。
+
+**`printUsage` のシグネチャ変更:**
+
+現行: `printUsage(name string, w io.Writer)` → 新: `printUsage(fs *flag.FlagSet, name string, w io.Writer)`
+
+`fs` を受け取るのはフラグ一覧の表示のため。ただし `fs.PrintDefaults()` は `fs.SetOutput()` で設定された writer（stderr）に書くので、`printUsage` 内では `fs.SetOutput(w)` で一時的に出力先を stdout に切り替え、`fs.PrintDefaults()` を呼び、その後 `fs.SetOutput(stderr)` に戻す。
 
 ### 4. エラーメッセージ
 
