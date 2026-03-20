@@ -14,7 +14,7 @@ func TestEncoders(t *testing.T) {
 	encoders := map[string]convert.Encoder{
 		"json": convert.JSONEncoder{},
 	}
-	testcases := []string{"basic"}
+	testcases := []string{"basic", "nested", "array", "substitution"}
 
 	for format, enc := range encoders {
 		for _, tc := range testcases {

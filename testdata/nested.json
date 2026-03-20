@@ -1,0 +1,10 @@
+{
+  "database": {
+    "connection": {
+      "pool_size": 10,
+      "timeout": 30
+    },
+    "host": "localhost",
+    "port": 5432
+  }
+}

@@ -1,0 +1,5 @@
+base_url = "https://api.example.com"
+endpoints {
+  users = ${base_url}"/users"
+  posts = ${base_url}"/posts"
+}
