@@ -1,6 +1,8 @@
 package convert
 
 import (
+	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"strings"
@@ -13,10 +15,31 @@ type Encoder interface {
 	Encode(w io.Writer, data map[string]any) error
 }
 
+// FlagRegistrar allows an Encoder to register custom flags on the FlagSet.
+type FlagRegistrar interface {
+	RegisterFlags(fs *flag.FlagSet)
+}
+
 // Run parses HOCON input and encodes it using the given Encoder.
 func Run(name string, enc Encoder, args []string, stdin io.Reader, stdout, stderr io.Writer) error {
-	cfg, err := parseInput(name, args, stdin, stdout, stderr)
-	if cfg == nil || err != nil {
+	fs := flag.NewFlagSet(name, flag.ContinueOnError)
+	fs.SetOutput(stderr)
+
+	if fr, ok := enc.(FlagRegistrar); ok {
+		fr.RegisterFlags(fs)
+	}
+
+	fs.Usage = func() { printUsage(fs, name, stdout) }
+
+	if err := fs.Parse(args); err != nil {
+		if errors.Is(err, flag.ErrHelp) {
+			return nil
+		}
+		return err
+	}
+
+	cfg, err := parseInput(name, fs.Args(), stdin)
+	if err != nil {
 		return err
 	}
 
@@ -32,14 +55,7 @@ func Run(name string, enc Encoder, args []string, stdin io.Reader, stdout, stder
 	return nil
 }
 
-func parseInput(name string, args []string, stdin io.Reader, stdout, stderr io.Writer) (*hocon.Config, error) {
-	for _, a := range args {
-		if a == "-h" || a == "--help" {
-			printUsage(name, stdout)
-			return nil, nil
-		}
-	}
-
+func parseInput(name string, args []string, stdin io.Reader) (*hocon.Config, error) {
 	switch len(args) {
 	case 0:
 		data, err := io.ReadAll(stdin)
@@ -76,13 +92,19 @@ func parseInput(name string, args []string, stdin io.Reader, stdout, stderr io.W
 	}
 }
 
-func printUsage(name string, w io.Writer) {
-	fmt.Fprintf(w, "Usage: %s [FILE...]\n", name)
-	fmt.Fprintln(w, "")
+func printUsage(fs *flag.FlagSet, name string, w io.Writer) {
+	fmt.Fprintf(w, "Usage: %s [OPTIONS] [FILE...]\n", name)
+	fmt.Fprintln(w)
 	fmt.Fprintf(w, "Convert HOCON to %s.\n", formatName(name))
-	fmt.Fprintln(w, "")
+	fmt.Fprintln(w)
 	fmt.Fprintln(w, "If no FILE is given, reads from stdin.")
 	fmt.Fprintln(w, "If multiple FILEs are given, they are merged (last file takes precedence).")
+	fmt.Fprintln(w)
+	fmt.Fprintln(w, "Options:")
+	origOut := fs.Output()
+	fs.SetOutput(w)
+	fs.PrintDefaults()
+	fs.SetOutput(origOut)
 }
 
 func formatName(name string) string {

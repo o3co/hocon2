@@ -12,10 +12,10 @@ import (
 
 func TestEncoders(t *testing.T) {
 	encoders := map[string]convert.Encoder{
-		"json":       convert.JSONEncoder{},
-		"yaml":       convert.YAMLEncoder{},
-		"toml":       convert.TOMLEncoder{},
-		"properties": convert.PropertiesEncoder{},
+		"json":       &convert.JSONEncoder{},
+		"yaml":       &convert.YAMLEncoder{},
+		"toml":       &convert.TOMLEncoder{},
+		"properties": &convert.PropertiesEncoder{},
 	}
 	testcases := []string{"basic", "nested", "array", "substitution"}
 

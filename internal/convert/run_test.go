@@ -15,7 +15,7 @@ import (
 func TestRun_Stdin(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	input := `name = "from_stdin"`
-	err := convert.Run("hocon2json", convert.JSONEncoder{}, []string{}, strings.NewReader(input), &stdout, &stderr)
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{}, strings.NewReader(input), &stdout, &stderr)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -26,7 +26,7 @@ func TestRun_Stdin(t *testing.T) {
 
 func TestRun_Help(t *testing.T) {
 	var stdout, stderr bytes.Buffer
-	err := convert.Run("hocon2json", convert.JSONEncoder{}, []string{"--help"}, strings.NewReader(""), &stdout, &stderr)
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"--help"}, strings.NewReader(""), &stdout, &stderr)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -37,7 +37,7 @@ func TestRun_Help(t *testing.T) {
 
 func TestRun_HelpShort(t *testing.T) {
 	var stdout, stderr bytes.Buffer
-	err := convert.Run("hocon2yaml", convert.JSONEncoder{}, []string{"-h"}, strings.NewReader(""), &stdout, &stderr)
+	err := convert.Run("hocon2yaml", &convert.JSONEncoder{}, []string{"-h"}, strings.NewReader(""), &stdout, &stderr)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -59,7 +59,7 @@ func TestRun_MultipleFiles(t *testing.T) {
 	os.WriteFile(override, []byte("name = \"override\""), 0644)
 
 	var stdout, stderr bytes.Buffer
-	err := convert.Run("hocon2json", convert.JSONEncoder{}, []string{base, override}, strings.NewReader(""), &stdout, &stderr)
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{base, override}, strings.NewReader(""), &stdout, &stderr)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -75,7 +75,7 @@ func TestRun_MultipleFiles(t *testing.T) {
 
 func TestRun_InvalidFile(t *testing.T) {
 	var stdout, stderr bytes.Buffer
-	err := convert.Run("hocon2json", convert.JSONEncoder{}, []string{"/nonexistent/file.conf"}, strings.NewReader(""), &stdout, &stderr)
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"/nonexistent/file.conf"}, strings.NewReader(""), &stdout, &stderr)
 	if err == nil {
 		t.Fatal("expected error for nonexistent file")
 	}
@@ -83,7 +83,7 @@ func TestRun_InvalidFile(t *testing.T) {
 
 func TestRun_InvalidHOCN(t *testing.T) {
 	var stdout, stderr bytes.Buffer
-	err := convert.Run("hocon2json", convert.JSONEncoder{}, []string{}, strings.NewReader("{{{{invalid"), &stdout, &stderr)
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{}, strings.NewReader("{{{{invalid"), &stdout, &stderr)
 	if err == nil {
 		t.Fatal("expected error for invalid HOCON")
 	}
@@ -95,7 +95,7 @@ func TestRun_InvalidFileInMulti(t *testing.T) {
 	os.WriteFile(valid, []byte(`name = "ok"`), 0644)
 
 	var stdout, stderr bytes.Buffer
-	err := convert.Run("hocon2json", convert.JSONEncoder{}, []string{valid, "/nonexistent/file.conf"}, strings.NewReader(""), &stdout, &stderr)
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{valid, "/nonexistent/file.conf"}, strings.NewReader(""), &stdout, &stderr)
 	if err == nil {
 		t.Fatal("expected error for nonexistent file in multi-file merge")
 	}
@@ -115,11 +115,22 @@ func TestRun_HelpFormats(t *testing.T) {
 	for _, tt := range names {
 		t.Run(tt.cmd, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
-			convert.Run(tt.cmd, convert.JSONEncoder{}, []string{"--help"}, strings.NewReader(""), &stdout, &stderr)
+			convert.Run(tt.cmd, &convert.JSONEncoder{}, []string{"--help"}, strings.NewReader(""), &stdout, &stderr)
 			if !strings.Contains(stdout.String(), tt.expect) {
 				t.Errorf("expected %q in help output for %s, got: %s", tt.expect, tt.cmd, stdout.String())
 			}
 		})
+	}
+}
+
+func TestRun_UnknownFlag(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-unknown"}, strings.NewReader(""), &stdout, &stderr)
+	if err == nil {
+		t.Fatal("expected error for unknown flag")
+	}
+	if !strings.Contains(stderr.String(), "flag") {
+		t.Errorf("expected flag-related error on stderr, got stderr: %q, err: %v", stderr.String(), err)
 	}
 }
 
