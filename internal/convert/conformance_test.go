@@ -23,10 +23,10 @@ func TestLightbendConformance(t *testing.T) {
 		name    string
 		encoder convert.Encoder
 	}{
-		{"json", convert.JSONEncoder{}},
-		{"yaml", convert.YAMLEncoder{}},
-		{"toml", convert.TOMLEncoder{}},
-		{"properties", convert.PropertiesEncoder{}},
+		{"json", &convert.JSONEncoder{}},
+		{"yaml", &convert.YAMLEncoder{}},
+		{"toml", &convert.TOMLEncoder{}},
+		{"properties", &convert.PropertiesEncoder{}},
 	}
 
 	lightbendDir := filepath.Join("..", "..", "testdata", "lightbend")
@@ -50,7 +50,7 @@ func TestLightbendConformance(t *testing.T) {
 				}
 
 				var stdout, stderr bytes.Buffer
-				err := convert.Run("hocon2json", convert.JSONEncoder{}, []string{confPath}, strings.NewReader(""), &stdout, &stderr)
+				err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{confPath}, strings.NewReader(""), &stdout, &stderr)
 				if err != nil {
 					t.Fatalf("Run() error: %v", err)
 				}

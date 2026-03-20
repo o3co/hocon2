@@ -11,6 +11,8 @@ HOCON (Human-Optimized Config Object Notation) は、人間にとって読みや
 
 パーサーには [go.hocon](https://github.com/o3co/go.hocon) を使用。[Lightbend のリファレンステストスイート](https://github.com/lightbend/config)で準拠性を検証済みです。
 
+> **[Claude Code](https://claude.ai/claude-code)** (Anthropic) により設計・実装されました。
+
 ## 対応フォーマット
 
 | コマンド | 出力フォーマット |

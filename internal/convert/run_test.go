@@ -15,7 +15,7 @@ import (
 func TestRun_Stdin(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	input := `name = "from_stdin"`
-	err := convert.Run("hocon2json", convert.JSONEncoder{}, []string{}, strings.NewReader(input), &stdout, &stderr)
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{}, strings.NewReader(input), &stdout, &stderr)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -26,18 +26,36 @@ func TestRun_Stdin(t *testing.T) {
 
 func TestRun_Help(t *testing.T) {
 	var stdout, stderr bytes.Buffer
-	err := convert.Run("hocon2json", convert.JSONEncoder{}, []string{"--help"}, strings.NewReader(""), &stdout, &stderr)
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"--help"}, strings.NewReader(""), &stdout, &stderr)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if !strings.Contains(stdout.String(), "Usage: hocon2json") {
-		t.Errorf("expected usage text, got: %s", stdout.String())
+	output := stdout.String()
+	for _, want := range []string{"Usage: hocon2json", "[OPTIONS]", "-compact", "-indent", "-o", "-overwrite"} {
+		if !strings.Contains(output, want) {
+			t.Errorf("expected %q in help output, got: %s", want, output)
+		}
+	}
+}
+
+func TestRun_HelpNoFormatFlags(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	convert.Run("hocon2yaml", convert.YAMLEncoder{}, []string{"--help"}, strings.NewReader(""), &stdout, &stderr)
+	output := stdout.String()
+	if strings.Contains(output, "-compact") {
+		t.Error("YAML help should not show -compact flag")
+	}
+	if strings.Contains(output, "-indent") {
+		t.Error("YAML help should not show -indent flag")
+	}
+	if !strings.Contains(output, "-o") {
+		t.Error("YAML help should show -o flag")
 	}
 }
 
 func TestRun_HelpShort(t *testing.T) {
 	var stdout, stderr bytes.Buffer
-	err := convert.Run("hocon2yaml", convert.JSONEncoder{}, []string{"-h"}, strings.NewReader(""), &stdout, &stderr)
+	err := convert.Run("hocon2yaml", &convert.JSONEncoder{}, []string{"-h"}, strings.NewReader(""), &stdout, &stderr)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -59,7 +77,7 @@ func TestRun_MultipleFiles(t *testing.T) {
 	os.WriteFile(override, []byte("name = \"override\""), 0644)
 
 	var stdout, stderr bytes.Buffer
-	err := convert.Run("hocon2json", convert.JSONEncoder{}, []string{base, override}, strings.NewReader(""), &stdout, &stderr)
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{base, override}, strings.NewReader(""), &stdout, &stderr)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
@@ -75,7 +93,7 @@ func TestRun_MultipleFiles(t *testing.T) {
 
 func TestRun_InvalidFile(t *testing.T) {
 	var stdout, stderr bytes.Buffer
-	err := convert.Run("hocon2json", convert.JSONEncoder{}, []string{"/nonexistent/file.conf"}, strings.NewReader(""), &stdout, &stderr)
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"/nonexistent/file.conf"}, strings.NewReader(""), &stdout, &stderr)
 	if err == nil {
 		t.Fatal("expected error for nonexistent file")
 	}
@@ -83,7 +101,7 @@ func TestRun_InvalidFile(t *testing.T) {
 
 func TestRun_InvalidHOCN(t *testing.T) {
 	var stdout, stderr bytes.Buffer
-	err := convert.Run("hocon2json", convert.JSONEncoder{}, []string{}, strings.NewReader("{{{{invalid"), &stdout, &stderr)
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{}, strings.NewReader("{{{{invalid"), &stdout, &stderr)
 	if err == nil {
 		t.Fatal("expected error for invalid HOCON")
 	}
@@ -95,7 +113,7 @@ func TestRun_InvalidFileInMulti(t *testing.T) {
 	os.WriteFile(valid, []byte(`name = "ok"`), 0644)
 
 	var stdout, stderr bytes.Buffer
-	err := convert.Run("hocon2json", convert.JSONEncoder{}, []string{valid, "/nonexistent/file.conf"}, strings.NewReader(""), &stdout, &stderr)
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{valid, "/nonexistent/file.conf"}, strings.NewReader(""), &stdout, &stderr)
 	if err == nil {
 		t.Fatal("expected error for nonexistent file in multi-file merge")
 	}
@@ -115,11 +133,150 @@ func TestRun_HelpFormats(t *testing.T) {
 	for _, tt := range names {
 		t.Run(tt.cmd, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
-			convert.Run(tt.cmd, convert.JSONEncoder{}, []string{"--help"}, strings.NewReader(""), &stdout, &stderr)
+			convert.Run(tt.cmd, &convert.JSONEncoder{}, []string{"--help"}, strings.NewReader(""), &stdout, &stderr)
 			if !strings.Contains(stdout.String(), tt.expect) {
 				t.Errorf("expected %q in help output for %s, got: %s", tt.expect, tt.cmd, stdout.String())
 			}
 		})
+	}
+}
+
+func TestRun_UnknownFlag(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-unknown"}, strings.NewReader(""), &stdout, &stderr)
+	if err == nil {
+		t.Fatal("expected error for unknown flag")
+	}
+	if !strings.Contains(stderr.String(), "flag") {
+		t.Errorf("expected flag-related error on stderr, got stderr: %q, err: %v", stderr.String(), err)
+	}
+}
+
+func TestRun_JSONCompact(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-compact"}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	output := strings.TrimSuffix(stdout.String(), "\n")
+	if strings.Contains(output, "\n") {
+		t.Errorf("expected single-line compact output, got: %q", output)
+	}
+	if !strings.Contains(output, `"name":"test"`) {
+		t.Errorf("expected compact JSON, got: %q", output)
+	}
+}
+
+func TestRun_JSONIndent(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-indent", "4"}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !strings.Contains(stdout.String(), "    \"name\"") {
+		t.Errorf("expected 4-space indent, got: %q", stdout.String())
+	}
+}
+
+func TestRun_JSONIndentInvalid(t *testing.T) {
+	tests := []struct {
+		name string
+		args []string
+	}{
+		{"zero", []string{"-indent", "0"}},
+		{"negative", []string{"-indent", "-1"}},
+		{"too_large", []string{"-indent", "17"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			err := convert.Run("hocon2json", &convert.JSONEncoder{}, tt.args, strings.NewReader(`name = "test"`), &stdout, &stderr)
+			if err == nil {
+				t.Fatal("expected error for invalid indent value")
+			}
+		})
+	}
+}
+
+func TestRun_JSONCompactOverridesIndent(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-compact", "-indent", "4"}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	output := strings.TrimSuffix(stdout.String(), "\n")
+	if strings.Contains(output, "\n") {
+		t.Errorf("expected single-line compact output, got: %q", output)
+	}
+}
+
+func TestRun_OutputFile(t *testing.T) {
+	dir := t.TempDir()
+	outPath := filepath.Join(dir, "output.json")
+
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-o", outPath}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	data, err := os.ReadFile(outPath)
+	if err != nil {
+		t.Fatalf("reading output file: %v", err)
+	}
+	if !strings.Contains(string(data), `"name"`) {
+		t.Errorf("expected JSON in output file, got: %s", data)
+	}
+	if stdout.Len() != 0 {
+		t.Errorf("expected no stdout output with -o, got: %s", stdout.String())
+	}
+}
+
+func TestRun_OutputFileNoOverwrite(t *testing.T) {
+	dir := t.TempDir()
+	outPath := filepath.Join(dir, "existing.json")
+	os.WriteFile(outPath, []byte("old content"), 0644)
+
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-o", outPath}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err == nil {
+		t.Fatal("expected error when output file exists without -overwrite")
+	}
+}
+
+func TestRun_OutputFileOverwrite(t *testing.T) {
+	dir := t.TempDir()
+	outPath := filepath.Join(dir, "existing.json")
+	os.WriteFile(outPath, []byte("old content"), 0644)
+
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-o", outPath, "-overwrite"}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	data, _ := os.ReadFile(outPath)
+	if strings.Contains(string(data), "old content") {
+		t.Error("expected file to be overwritten")
+	}
+}
+
+func TestRun_OutputFileNoDir(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-o", "/nonexistent/dir/out.json"}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err == nil {
+		t.Fatal("expected error for nonexistent directory")
+	}
+}
+
+func TestRun_OverwriteWithoutO(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-overwrite"}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("expected -overwrite without -o to succeed silently, got: %v", err)
+	}
+	if !strings.Contains(stdout.String(), `"name"`) {
+		t.Errorf("expected normal JSON output, got: %s", stdout.String())
 	}
 }
 

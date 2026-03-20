@@ -70,6 +70,54 @@ func TestCLI_Help(t *testing.T) {
 	}
 }
 
+func TestCLI_Compact(t *testing.T) {
+	bin := buildBinary(t, "hocon2json")
+	cmd := exec.Command(bin, "-compact")
+	cmd.Stdin = strings.NewReader(`name = "test"`)
+	out, err := cmd.Output()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	output := strings.TrimSuffix(string(out), "\n")
+	if strings.Contains(output, "\n") {
+		t.Errorf("expected compact output, got: %q", out)
+	}
+}
+
+func TestCLI_OutputFile(t *testing.T) {
+	bin := buildBinary(t, "hocon2json")
+	dir := t.TempDir()
+	outPath := filepath.Join(dir, "out.json")
+
+	cmd := exec.Command(bin, "-o", outPath)
+	cmd.Stdin = strings.NewReader(`name = "test"`)
+	if err := cmd.Run(); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	data, err := os.ReadFile(outPath)
+	if err != nil {
+		t.Fatalf("reading output: %v", err)
+	}
+	if !strings.Contains(string(data), `"name"`) {
+		t.Errorf("expected JSON in file, got: %s", data)
+	}
+}
+
+func TestCLI_OutputFileNoOverwrite(t *testing.T) {
+	bin := buildBinary(t, "hocon2json")
+	dir := t.TempDir()
+	outPath := filepath.Join(dir, "existing.json")
+	os.WriteFile(outPath, []byte("old"), 0644)
+
+	cmd := exec.Command(bin, "-o", outPath)
+	cmd.Stdin = strings.NewReader(`name = "test"`)
+	err := cmd.Run()
+	if err == nil {
+		t.Fatal("expected error when file exists without -overwrite")
+	}
+}
+
 func TestCLI_MultipleFiles(t *testing.T) {
 	bin := buildBinary(t, "hocon2json")
 	dir := t.TempDir()
