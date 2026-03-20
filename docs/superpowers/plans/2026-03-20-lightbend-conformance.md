@@ -48,10 +48,10 @@ You can fetch files from:
 https://raw.githubusercontent.com/lightbend/config/main/config/src/test/resources/equiv01/<filename>
 ```
 
-- [ ] **Step 2: Verify hocon2json can parse each .conf file**
+- [ ] **Step 2: Build hocon2json and verify each .conf file parses**
 
 ```bash
-for f in testdata/lightbend/equiv01/*.conf testdata/lightbend/equiv01/no-whitespace.json; do
+go build ./cmd/hocon2json/ && for f in testdata/lightbend/equiv01/*.conf testdata/lightbend/equiv01/no-whitespace.json; do
   echo "=== $f ===" && ./hocon2json "$f" > /dev/null && echo "OK" || echo "FAIL"
 done
 ```
@@ -82,14 +82,22 @@ Fetch from lightbend/config GitHub raw URLs and create the directory structure. 
 - [ ] **Step 2: Verify hocon2json can parse each test input**
 
 ```bash
-for d in equiv02 equiv03 equiv04 equiv05; do
-  for f in testdata/lightbend/$d/*.conf testdata/lightbend/$d/*.json 2>/dev/null; do
+go build ./cmd/hocon2json/ && for d in equiv02 equiv03 equiv04 equiv05; do
+  for f in testdata/lightbend/$d/*.conf testdata/lightbend/$d/*.json; do
     [ -f "$f" ] && [ "$(basename $f)" != "original.json" ] && echo "=== $f ===" && ./hocon2json "$f" > /dev/null 2>&1 && echo "OK" || echo "FAIL: $f"
   done
 done
 ```
 
-Note: equiv03's `includes.conf` uses relative includes, so hocon2json must be run from the correct directory or the parser must resolve includes relative to the file.
+- [ ] **Step 3: Verify equiv03 include resolution**
+
+equiv03's `includes.conf` uses relative includes (`include "letters/a.conf"` etc.). Verify that `go.hocon.ParseFile()` resolves includes relative to the parsed file's directory:
+
+```bash
+./hocon2json testdata/lightbend/equiv03/includes.conf
+```
+
+Expected: Successfully outputs JSON with letters and root data. If this fails with include errors, `go.hocon` may not support relative include resolution, and equiv03 will need to be added to the skip list.
 
 - [ ] **Step 3: Commit**
 
@@ -108,29 +116,48 @@ git commit -m "test: add lightbend equiv02-05 test data"
 - Create: `testdata/lightbend/equiv{01-05}/expected.toml` (where possible)
 - Create: `testdata/lightbend/equiv{01-05}/expected.properties`
 
-- [ ] **Step 1: For each equiv dir, parse original.json and generate expected outputs**
+- [ ] **Step 1: For each equiv dir, generate expected outputs from a representative .conf file**
 
-Write a temporary Go program or script that:
-1. Reads `original.json` via `encoding/json` → `map[string]any`
-2. Runs each encoder (`JSONEncoder`, `YAMLEncoder`, `TOMLEncoder`, `PropertiesEncoder`) against the map
-3. Saves output as `expected.{format}`
-4. If an encoder returns an error (e.g., TOML with null values), skip that format and print a warning
+For each equiv dir, pick one representative `.conf` file (the simplest/most canonical one), run it through each encoder via `convert.Run()`, and save the output as `expected.{format}`.
+
+Process:
+1. Pick a representative `.conf` (e.g., equiv01 → `equals.conf`, equiv02 → `path-keys.conf`, equiv03 → `includes.conf`, equiv04 → `missing-substitutions.conf`, equiv05 → `triple-quotes.conf`)
+2. Run `./hocon2json <file>` and save as `expected.json`
+3. Run `./hocon2yaml <file>` and save as `expected.yaml`
+4. Run `./hocon2toml <file>` and save as `expected.toml` (if it doesn't error)
+5. Run `./hocon2properties <file>` and save as `expected.properties`
 
 ```bash
-# For each equiv dir:
-# 1. Parse original.json → map[string]any
-# 2. Encode with each format
-# 3. Save as expected.{format}
+go build ./cmd/...
+for pair in "equiv01:equals.conf" "equiv02:path-keys.conf" "equiv03:includes.conf" "equiv04:missing-substitutions.conf" "equiv05:triple-quotes.conf"; do
+  dir="${pair%%:*}" file="${pair##*:}"
+  echo "=== $dir ==="
+  ./hocon2json "testdata/lightbend/$dir/$file" > "testdata/lightbend/$dir/expected.json" && echo "json OK"
+  ./hocon2yaml "testdata/lightbend/$dir/$file" > "testdata/lightbend/$dir/expected.yaml" && echo "yaml OK"
+  ./hocon2toml "testdata/lightbend/$dir/$file" > "testdata/lightbend/$dir/expected.toml" 2>/dev/null && echo "toml OK" || echo "toml SKIP (removing)"
+  ./hocon2properties "testdata/lightbend/$dir/$file" > "testdata/lightbend/$dir/expected.properties" && echo "properties OK"
+done
 ```
 
+If TOML fails (e.g., null values in equiv01, equiv05), remove the empty `expected.toml` and note that those tests will be skipped.
+
 Key considerations:
-- equiv01 `original.json` contains `null` values → TOML will fail (skip `expected.toml` for equiv01)
-- equiv04 `original.json` is `{}` (empty object) → Properties output will be empty, TOML might be empty string
-- The JSONEncoder sorts keys alphabetically and uses 2-space indent, so `expected.json` will differ from `original.json` in formatting but match semantically
+- equiv01 `original.json` contains `null` values → TOML will likely fail
+- equiv04 `original.json` is `{}` (empty object) → all outputs may be trivial
+- equiv05 has no nulls but has special string escaping
 
-- [ ] **Step 2: Verify semantic match between expected.json and original.json**
+- [ ] **Step 2: Verify conformance — semantic match between expected.json and original.json**
 
-For each equiv dir, parse both `expected.json` and `original.json` into `map[string]any` and verify `reflect.DeepEqual`. This confirms the generation step preserved semantics.
+For each equiv dir, parse both `expected.json` (generated from .conf) and `original.json` (Lightbend reference) into `map[string]any` and verify they are semantically equal. This confirms that `go.hocon` correctly parses the HOCON input to match the Lightbend reference.
+
+```bash
+# Use a quick Go snippet or jq to compare:
+for d in equiv01 equiv02 equiv03 equiv04 equiv05; do
+  echo "=== $d ===" && diff <(jq -cS . "testdata/lightbend/$d/original.json") <(jq -cS . "testdata/lightbend/$d/expected.json") && echo "OK" || echo "MISMATCH"
+done
+```
+
+If there is a mismatch, investigate whether it's a go.hocon parser issue or a data type difference (e.g., int vs float64). Fix or add to skip list as appropriate.
 
 - [ ] **Step 3: Commit**
 
