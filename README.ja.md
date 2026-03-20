@@ -35,7 +35,7 @@ go install github.com/o3co/hocon2/cmd/hocon2properties@latest
 
 ### バイナリリリース
 
-[リリースページ](https://github.com/o3co/hocon2/releases/latest)からビルド済みバイナリをダウンロードできます（Linux/macOS、amd64/arm64）。
+[リリースページ](https://github.com/o3co/hocon2/releases/latest)からビルド済みバイナリをダウンロードできます（Linux/macOS/Windows、amd64/arm64）。
 
 ## 使い方
 
@@ -51,6 +51,24 @@ cat app.conf | hocon2yaml
 # ヘルプを表示
 hocon2json --help
 ```
+
+### オプション
+
+```bash
+# コンパクト JSON 出力（空白なし）
+hocon2json -compact app.conf
+
+# インデント幅を指定（デフォルト: 2）
+hocon2json -indent 4 app.conf
+
+# ファイルに出力
+hocon2json -o output.json app.conf
+
+# 既存ファイルを上書き
+hocon2json -o output.json -overwrite app.conf
+```
+
+`-compact` と `-indent` は `hocon2json` のみで使用可能。`-o` と `-overwrite` は全コマンド共通です。
 
 ### 複数ファイルのマージ
 

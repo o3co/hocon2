@@ -280,6 +280,65 @@ func TestRun_OverwriteWithoutO(t *testing.T) {
 	}
 }
 
+func TestRun_JSONIndentBoundary(t *testing.T) {
+	tests := []struct {
+		name   string
+		indent int
+		prefix string
+	}{
+		{"min", 1, " \"name\""},
+		{"max", 16, "                \"name\""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-indent", fmt.Sprintf("%d", tt.indent)}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if !strings.Contains(stdout.String(), tt.prefix) {
+				t.Errorf("expected %d-space indent, got: %q", tt.indent, stdout.String())
+			}
+		})
+	}
+}
+
+func TestRun_OutputFileCompact(t *testing.T) {
+	dir := t.TempDir()
+	outPath := filepath.Join(dir, "compact.json")
+
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-compact", "-o", outPath}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	data, _ := os.ReadFile(outPath)
+	output := strings.TrimSuffix(string(data), "\n")
+	if strings.Contains(output, "\n") {
+		t.Errorf("expected compact JSON in file, got: %q", data)
+	}
+}
+
+func TestRun_OutputFileYAML(t *testing.T) {
+	dir := t.TempDir()
+	outPath := filepath.Join(dir, "output.yaml")
+
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2yaml", &convert.YAMLEncoder{}, []string{"-o", outPath}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	data, _ := os.ReadFile(outPath)
+	if !strings.Contains(string(data), "name:") {
+		t.Errorf("expected YAML in output file, got: %s", data)
+	}
+	if stdout.Len() != 0 {
+		t.Errorf("expected no stdout output with -o, got: %s", stdout.String())
+	}
+}
+
 type failEncoder struct{}
 
 func (failEncoder) Encode(w io.Writer, data map[string]any) error {
