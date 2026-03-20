@@ -1,0 +1,11 @@
+root = "this gets included at the root"
+
+[letters]
+  a = "ok"
+  b = 507
+  [letters.c]
+    fromConf = 89
+    fromProp = "true"
+  [letters.numbers]
+    1 = 1
+    2 = "abcd"

@@ -14,16 +14,13 @@ import (
 
 // skipConformance lists tests to skip with reasons.
 var skipConformance = map[string]string{
-	// equiv03: go.hocon v0.2.0 does not support extensionless include probing
-	// (all equiv03 tests are excluded by not listing equiv03 in equivDirs)
-
 	// equiv05 conformance: triple-quoted string whitespace handling differs
-	// between go.hocon and Lightbend reference implementation
+	// between go.hocon and Lightbend reference implementation (go.hocon issue #2)
 	"equiv05/triple-quotes.conf/conformance": "go.hocon triple-quote whitespace handling differs from Lightbend reference",
 }
 
 func TestLightbendConformance(t *testing.T) {
-	equivDirs := []string{"equiv01", "equiv02", "equiv04", "equiv05"}
+	equivDirs := []string{"equiv01", "equiv02", "equiv03", "equiv04", "equiv05"}
 	formats := []struct {
 		name    string
 		encoder convert.Encoder
