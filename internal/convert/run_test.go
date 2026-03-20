@@ -192,6 +192,76 @@ func TestRun_JSONCompactOverridesIndent(t *testing.T) {
 	}
 }
 
+func TestRun_OutputFile(t *testing.T) {
+	dir := t.TempDir()
+	outPath := filepath.Join(dir, "output.json")
+
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-o", outPath}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	data, err := os.ReadFile(outPath)
+	if err != nil {
+		t.Fatalf("reading output file: %v", err)
+	}
+	if !strings.Contains(string(data), `"name"`) {
+		t.Errorf("expected JSON in output file, got: %s", data)
+	}
+	if stdout.Len() != 0 {
+		t.Errorf("expected no stdout output with -o, got: %s", stdout.String())
+	}
+}
+
+func TestRun_OutputFileNoOverwrite(t *testing.T) {
+	dir := t.TempDir()
+	outPath := filepath.Join(dir, "existing.json")
+	os.WriteFile(outPath, []byte("old content"), 0644)
+
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-o", outPath}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err == nil {
+		t.Fatal("expected error when output file exists without -overwrite")
+	}
+}
+
+func TestRun_OutputFileOverwrite(t *testing.T) {
+	dir := t.TempDir()
+	outPath := filepath.Join(dir, "existing.json")
+	os.WriteFile(outPath, []byte("old content"), 0644)
+
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-o", outPath, "-overwrite"}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	data, _ := os.ReadFile(outPath)
+	if strings.Contains(string(data), "old content") {
+		t.Error("expected file to be overwritten")
+	}
+}
+
+func TestRun_OutputFileNoDir(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-o", "/nonexistent/dir/out.json"}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err == nil {
+		t.Fatal("expected error for nonexistent directory")
+	}
+}
+
+func TestRun_OverwriteWithoutO(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-overwrite"}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("expected -overwrite without -o to succeed silently, got: %v", err)
+	}
+	if !strings.Contains(stdout.String(), `"name"`) {
+		t.Errorf("expected normal JSON output, got: %s", stdout.String())
+	}
+}
+
 type failEncoder struct{}
 
 func (failEncoder) Encode(w io.Writer, data map[string]any) error {

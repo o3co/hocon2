@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	"github.com/o3co/go.hocon"
@@ -24,6 +25,11 @@ type FlagRegistrar interface {
 func Run(name string, enc Encoder, args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 	fs := flag.NewFlagSet(name, flag.ContinueOnError)
 	fs.SetOutput(stderr)
+
+	var outFile string
+	var overwrite bool
+	fs.StringVar(&outFile, "o", "", "output file path")
+	fs.BoolVar(&overwrite, "overwrite", false, "overwrite existing output file")
 
 	if fr, ok := enc.(FlagRegistrar); ok {
 		fr.RegisterFlags(fs)
@@ -48,11 +54,37 @@ func Run(name string, enc Encoder, args []string, stdin io.Reader, stdout, stder
 		return fmt.Errorf("unmarshaling config: %w", err)
 	}
 
-	if err := enc.Encode(stdout, m); err != nil {
+	w, closer, err := openOutput(outFile, overwrite, stdout)
+	if err != nil {
+		return err
+	}
+	if closer != nil {
+		defer closer.Close()
+	}
+
+	if err := enc.Encode(w, m); err != nil {
 		return fmt.Errorf("encoding output: %w", err)
 	}
 
 	return nil
+}
+
+func openOutput(path string, overwrite bool, stdout io.Writer) (io.Writer, io.Closer, error) {
+	if path == "" {
+		return stdout, nil, nil
+	}
+
+	if !overwrite {
+		if _, err := os.Stat(path); err == nil {
+			return nil, nil, fmt.Errorf("output file %s already exists (use -overwrite to replace)", path)
+		}
+	}
+
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	if err != nil {
+		return nil, nil, fmt.Errorf("opening output file: %w", err)
+	}
+	return f, f, nil
 }
 
 func parseInput(name string, args []string, stdin io.Reader) (*hocon.Config, error) {
