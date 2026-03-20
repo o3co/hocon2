@@ -1,7 +1,7 @@
 # hocon2
 
 [![CI](https://github.com/o3co/hocon2/actions/workflows/ci.yml/badge.svg)](https://github.com/o3co/hocon2/actions/workflows/ci.yml)
-[![Go Reference](https://pkg.go.dev/badge/github.com/o3co/go.hocon2.svg)](https://pkg.go.dev/github.com/o3co/go.hocon2)
+[![Go Reference](https://pkg.go.dev/badge/github.com/o3co/hocon2.svg)](https://pkg.go.dev/github.com/o3co/hocon2)
 [![Release](https://img.shields.io/github/v/release/o3co/hocon2)](https://github.com/o3co/hocon2/releases/latest)
 [![License](https://img.shields.io/github/license/o3co/hocon2)](LICENSE)
 
@@ -25,10 +25,10 @@ Powered by [go.hocon](https://github.com/o3co/go.hocon) parser. Conformance test
 ### Go
 
 ```bash
-go install github.com/o3co/go.hocon2/cmd/hocon2json@latest
-go install github.com/o3co/go.hocon2/cmd/hocon2yaml@latest
-go install github.com/o3co/go.hocon2/cmd/hocon2toml@latest
-go install github.com/o3co/go.hocon2/cmd/hocon2properties@latest
+go install github.com/o3co/hocon2/cmd/hocon2json@latest
+go install github.com/o3co/hocon2/cmd/hocon2yaml@latest
+go install github.com/o3co/hocon2/cmd/hocon2toml@latest
+go install github.com/o3co/hocon2/cmd/hocon2properties@latest
 ```
 
 ### Binary releases

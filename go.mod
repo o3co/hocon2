@@ -1,4 +1,4 @@
-module github.com/o3co/go.hocon2
+module github.com/o3co/hocon2
 
 go 1.25.0
 

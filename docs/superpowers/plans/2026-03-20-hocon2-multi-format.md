@@ -224,7 +224,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/o3co/go.hocon2/internal/convert"
+	"github.com/o3co/hocon2/internal/convert"
 )
 
 func TestEncoders(t *testing.T) {
@@ -289,7 +289,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/o3co/go.hocon2/internal/convert"
+	"github.com/o3co/hocon2/internal/convert"
 )
 
 func main() {
@@ -636,7 +636,7 @@ package flatten_test
 import (
 	"testing"
 
-	"github.com/o3co/go.hocon2/internal/flatten"
+	"github.com/o3co/hocon2/internal/flatten"
 )
 
 func TestFlatten(t *testing.T) {
@@ -868,7 +868,7 @@ import (
 	"io"
 
 	"github.com/magiconair/properties"
-	"github.com/o3co/go.hocon2/internal/flatten"
+	"github.com/o3co/hocon2/internal/flatten"
 )
 
 // PropertiesEncoder encodes data as Java .properties format.
@@ -913,7 +913,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/o3co/go.hocon2/internal/convert"
+	"github.com/o3co/hocon2/internal/convert"
 )
 
 func main() {
@@ -933,7 +933,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/o3co/go.hocon2/internal/convert"
+	"github.com/o3co/hocon2/internal/convert"
 )
 
 func main() {
@@ -953,7 +953,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/o3co/go.hocon2/internal/convert"
+	"github.com/o3co/hocon2/internal/convert"
 )
 
 func main() {
@@ -1331,10 +1331,10 @@ HOCON conversion tools — convert [HOCON](https://github.com/lightbend/config/b
 ## Install
 
 ```bash
-go install github.com/o3co/go.hocon2/cmd/hocon2json@latest
-go install github.com/o3co/go.hocon2/cmd/hocon2yaml@latest
-go install github.com/o3co/go.hocon2/cmd/hocon2toml@latest
-go install github.com/o3co/go.hocon2/cmd/hocon2properties@latest
+go install github.com/o3co/hocon2/cmd/hocon2json@latest
+go install github.com/o3co/hocon2/cmd/hocon2yaml@latest
+go install github.com/o3co/hocon2/cmd/hocon2toml@latest
+go install github.com/o3co/hocon2/cmd/hocon2properties@latest
 ```
 
 ## Usage
@@ -1461,7 +1461,7 @@ go.hocon2/
 │   ├── convert/         # Encoder interface + Run() + format encoders
 │   └── flatten/         # map[string]any → map[string]string
 ├── testdata/            # Golden test data (.hocon + expected outputs)
-├── go.mod               # module github.com/o3co/go.hocon2
+├── go.mod               # module github.com/o3co/hocon2
 └── LICENSE              # Apache 2.0
 ```
 

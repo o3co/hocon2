@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/o3co/go.hocon2/internal/convert"
+	"github.com/o3co/hocon2/internal/convert"
 )
 
 func TestEncoders(t *testing.T) {

@@ -17,7 +17,7 @@ go.hocon2/
 │   ├── convert/         # Encoder interface + Run() + format encoders
 │   └── flatten/         # map[string]any → map[string]string
 ├── testdata/            # Golden test data (.hocon + expected outputs)
-├── go.mod               # module github.com/o3co/go.hocon2
+├── go.mod               # module github.com/o3co/hocon2
 └── LICENSE              # Apache 2.0
 ```
 
@@ -67,6 +67,6 @@ make install
 ## Conventions
 
 - License: Apache 2.0
-- Go module path: `github.com/o3co/go.hocon2`
+- Go module path: `github.com/o3co/hocon2`
 - Branch strategy: `master` (release), `develop` (work branch)
 - Commit style: conventional commits (`feat:`, `fix:`, `chore:`, etc.)

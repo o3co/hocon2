@@ -3,7 +3,7 @@ package flatten_test
 import (
 	"testing"
 
-	"github.com/o3co/go.hocon2/internal/flatten"
+	"github.com/o3co/hocon2/internal/flatten"
 )
 
 func TestFlatten(t *testing.T) {
