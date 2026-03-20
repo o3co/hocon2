@@ -35,7 +35,7 @@ go install github.com/o3co/hocon2/cmd/hocon2properties@latest
 
 ### Binary releases
 
-Download pre-built binaries from the [releases page](https://github.com/o3co/hocon2/releases/latest) (Linux/macOS, amd64/arm64).
+Download pre-built binaries from the [releases page](https://github.com/o3co/hocon2/releases/latest) (Linux/macOS/Windows, amd64/arm64).
 
 ## Usage
 
@@ -51,6 +51,24 @@ cat app.conf | hocon2yaml
 # Show help
 hocon2json --help
 ```
+
+### Options
+
+```bash
+# Compact JSON output (no whitespace)
+hocon2json -compact app.conf
+
+# Custom indentation width (default: 2)
+hocon2json -indent 4 app.conf
+
+# Write output to a file
+hocon2json -o output.json app.conf
+
+# Overwrite an existing output file
+hocon2json -o output.json -overwrite app.conf
+```
+
+`-compact` and `-indent` are available for `hocon2json` only. `-o` and `-overwrite` work with all commands.
 
 ### Multiple file merge
 

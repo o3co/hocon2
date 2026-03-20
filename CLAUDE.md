@@ -14,9 +14,10 @@ go.hocon2/
 │   ├── hocon2toml/main.go
 │   └── hocon2properties/main.go
 ├── internal/
-│   ├── convert/         # Encoder interface + Run() + format encoders
+│   ├── convert/         # Encoder/FlagRegistrar interfaces + Run() + format encoders
 │   └── flatten/         # map[string]any → map[string]string
 ├── testdata/            # Golden test data (.hocon + expected outputs)
+├── CHANGELOG.md         # Keep a Changelog format
 ├── go.mod               # module github.com/o3co/hocon2
 └── LICENSE              # Apache 2.0
 ```
@@ -52,6 +53,14 @@ cat app.conf | ./hocon2yaml
 # Merge multiple files (last takes precedence)
 ./hocon2toml base.conf env.conf local.conf
 
+# JSON formatting options
+./hocon2json -compact app.conf
+./hocon2json -indent 4 app.conf
+
+# Output to file (all commands)
+./hocon2json -o output.json app.conf
+./hocon2json -o output.json -overwrite app.conf
+
 # Install all globally
 make install
 ```
@@ -59,8 +68,10 @@ make install
 ## Design Decisions
 
 - **Encoder interface** — `internal/convert.Encoder` defines `Encode(w io.Writer, data map[string]any) error`. Each format implements this.
-- **Shared Run()** — Input parsing, HOCON parsing, merging, and encoding in one function. Each command is a thin wrapper: `convert.Run(name, encoder, ...)`
+- **FlagRegistrar interface** — Optional interface `RegisterFlags(fs *flag.FlagSet)`. Encoders that need custom flags implement this (currently only `JSONEncoder` for `-compact`/`-indent`).
+- **Shared Run()** — Flag parsing, HOCON parsing, merging, output routing, and encoding in one function. Each command is a thin wrapper: `convert.Run(name, encoder, ...)`
 - **Multi-file merge** — Multiple positional args supported. Right-precedence (last file wins) via `WithFallback`.
+- **Output routing** — `-o` flag writes to file instead of stdout. `-overwrite` required for existing files.
 - **internal packages** — Not exported. No API stability commitment.
 - **stdin / file args** — Unix pipeline and direct file input both supported.
 
