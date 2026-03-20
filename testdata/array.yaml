@@ -1,0 +1,7 @@
+ports:
+    - 8080
+    - 8443
+tags:
+    - web
+    - api
+    - v2
