@@ -1,5 +1,8 @@
 # Binaries
 /hocon2json
+/hocon2yaml
+/hocon2toml
+/hocon2properties
 *.exe
 
 # IDE
