@@ -11,6 +11,8 @@ HOCON (Human-Optimized Config Object Notation) is a superset of JSON designed fo
 
 Powered by [go.hocon](https://github.com/o3co/go.hocon) parser. Conformance tested against [Lightbend's reference test suite](https://github.com/lightbend/config).
 
+> **Implemented by [Claude Code](https://claude.ai/claude-code)** (Anthropic) — designed and built end-to-end with Claude Code.
+
 ## Supported Formats
 
 | Command | Output Format |
