@@ -25,7 +25,7 @@ hocon2 CLI ツール群に出力オプション、出力ファイル指定、エ
 ```go
 func Run(name string, enc Encoder, args []string, stdin io.Reader, stdout, stderr io.Writer) error {
     fs := flag.NewFlagSet(name, flag.ContinueOnError)
-    fs.SetOutput(stderr)
+    fs.SetOutput(stderr) // フラグパースエラーは stderr へ
 
     var outFile string
     var overwrite bool
@@ -37,15 +37,22 @@ func Run(name string, enc Encoder, args []string, stdin io.Reader, stdout, stder
         fr.RegisterFlags(fs)
     }
 
-    // カスタム Usage
-    fs.Usage = func() { printUsage(fs, name) }
+    // カスタム Usage — ヘルプは stdout に出す（Unix 慣習: help → stdout, error → stderr）
+    fs.Usage = func() { printUsage(fs, name, stdout) }
 
     if err := fs.Parse(args); err != nil {
-        return err // -h/--help はここで処理される
+        if errors.Is(err, flag.ErrHelp) {
+            return nil // -h/--help は Usage 出力済み、正常終了
+        }
+        return err
     }
     // fs.Args() が位置引数（HOCON ファイルパス）
 }
 ```
+
+**`flag.ErrHelp` の処理:** `flag.ContinueOnError` モードでは `-h`/`--help` 時に `flag.ErrHelp` が返る。これを `nil` に変換して正常終了（exit 0）とする。Usage 関数は `fs.Parse` 内で自動呼び出し済み。
+
+**ヘルプ出力先:** `fs.SetOutput(stderr)` はフラグパースエラーの出力先。`fs.Usage` クロージャ内では `stdout` を使い、Unix 慣習（help → stdout, exit 0）に従う。`printUsage(fs, name, stdout)` は `fs`（フラグ一覧表示用）、`name`（コマンド名）、`stdout`（出力先）を受け取るクロージャ。
 
 **FlagRegistrar インターフェース:**
 
@@ -67,6 +74,12 @@ type FlagRegistrar interface {
 | `-o` 指定 + ファイル存在 + `-overwrite` なし | エラー |
 
 `-overwrite` は `-o` なしで指定された場合は無視（エラーにしない）。
+
+**`-o` の追加仕様:**
+
+- ファイルは `0644` パーミッションで作成
+- 親ディレクトリが存在しない場合はエラー（自動作成しない）
+- `-o -` のような特殊値は扱わない（リテラルなファイル名として処理）
 
 ### 2. JSON エンコーダーの出力オプション
 
@@ -98,7 +111,8 @@ func (e *JSONEncoder) RegisterFlags(fs *flag.FlagSet) {
 **Encode の挙動:**
 
 - `-compact` → インデントなし、改行なし
-- `-indent N` → N スペースインデント
+- `-indent N` → N スペースインデント（有効範囲: 1〜16。範囲外はエラー）
+- `-indent 0` は許可しない（compact と紛らわしいため `-compact` を使うこと）
 - `-compact` + `-indent` 両方指定 → `-compact` が優先
 
 **他のエンコーダー:** 変更なし。`FlagRegistrar` を実装しない。
