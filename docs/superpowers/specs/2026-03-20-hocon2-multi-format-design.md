@@ -33,7 +33,11 @@ go.hocon2/
 │   ├── convert/
 │   │   ├── convert.go           # Encoder interface + Run()
 │   │   ├── convert_test.go      # Golden tests
-│   │   └── integration_test.go  # CLI integration tests
+│   │   ├── integration_test.go  # CLI integration tests
+│   │   ├── json.go              # JSON Encoder
+│   │   ├── yaml.go              # YAML Encoder
+│   │   ├── toml.go              # TOML Encoder
+│   │   └── properties.go        # Properties Encoder
 │   └── flatten/
 │       ├── flatten.go           # map[string]any → map[string]string
 │       └── flatten_test.go
@@ -68,7 +72,8 @@ type Encoder interface {
 }
 
 // Run parses HOCON input (from stdin or file) and encodes it using the given Encoder.
-func Run(enc Encoder, args []string, stdin io.Reader, stdout, stderr io.Writer) error
+// The name parameter is used in help/error messages (e.g., "hocon2yaml").
+func Run(name string, enc Encoder, args []string, stdin io.Reader, stdout, stderr io.Writer) error
 ```
 
 `Run()` の処理フロー:
@@ -86,7 +91,7 @@ func Run(enc Encoder, args []string, stdin io.Reader, stdout, stderr io.Writer) 
 | hocon2toml | `github.com/BurntSushi/toml` — `NewEncoder` | toml |
 | hocon2properties | `internal/flatten` + `github.com/magiconair/properties` | properties |
 
-各コマンドの `main.go` は Encoder を `convert.Run()` に渡すだけの薄いエントリポイント:
+Encoder 実装は `internal/convert/` パッケージ内に配置する（テストからインポート可能にするため）。各コマンドの `main.go` は `convert.Run()` を呼ぶだけの薄いエントリポイント:
 
 ```go
 // cmd/hocon2yaml/main.go
@@ -95,19 +100,12 @@ package main
 import (
     "fmt"
     "os"
+
     "github.com/o3co/go.hocon2/internal/convert"
 )
 
-type yamlEncoder struct{}
-
-func (yamlEncoder) Encode(w io.Writer, data map[string]any) error {
-    enc := yaml.NewEncoder(w)
-    defer enc.Close()
-    return enc.Encode(data)
-}
-
 func main() {
-    if err := convert.Run(yamlEncoder{}, os.Args[1:], os.Stdin, os.Stdout, os.Stderr); err != nil {
+    if err := convert.Run("hocon2yaml", convert.YAMLEncoder{}, os.Args[1:], os.Stdin, os.Stdout, os.Stderr); err != nil {
         fmt.Fprintf(os.Stderr, "hocon2yaml: %v\n", err)
         os.Exit(1)
     }
@@ -132,6 +130,8 @@ func Flatten(m map[string]any) map[string]string
 - スライス → インデックスキー: `{"items": [1, 2]}` → `items.0=1`, `items.1=2`
 - 値の文字列化: `fmt.Sprintf("%v")`
 - 空の map/スライス → キーを出力しない
+- `null` 値 → 空文字列として出力（`key=`）
+- ドットを含むキー → 現時点ではエスケープ非対応（HOCON のキーにドットが含まれる場合はフラット化で曖昧になる制限事項として記載）
 
 Properties Encoder のデータフロー:
 ```
@@ -175,6 +175,7 @@ func TestEncoders(t *testing.T) {
 | basic | 単純な key-value ペア |
 | nested | ネストしたオブジェクト |
 | array | 配列・リスト |
+| substitution | HOCON 変数参照 (`${var}`) |
 
 ---
 
@@ -183,7 +184,7 @@ func TestEncoders(t *testing.T) {
 ### README.md
 
 - プロジェクト概要と対応フォーマット
-- インストール方法（`go install ./cmd/hocon2json@latest` 等、4コマンド分）
+- インストール方法（`go install github.com/o3co/go.hocon2/cmd/hocon2json@latest` 等、4コマンド分）
 - 使い方（stdin + file の例）
 - ビルド方法（`make all`）
 - ライセンス表記
@@ -253,6 +254,14 @@ install:
 | `gopkg.in/yaml.v3` | latest | YAML encoding |
 | `github.com/BurntSushi/toml` | latest | TOML encoding |
 | `github.com/magiconair/properties` | latest | Properties encoding |
+
+---
+
+## Known Limitations
+
+- **TOML 混合型配列**: HOCON は `[1, "two", true]` のような異なる型の配列を許容するが、TOML は同一型のみ。TOML Encoder は混合型配列に遭遇した場合エラーを返す（ライブラリのデフォルト挙動に従う）。
+- **Properties のドット含みキー**: HOCON で `"db.host"` のようにドットを含むキーを使うと、フラット化時に `db.host`（ネストしたキー）と区別がつかない。現時点ではエスケープ非対応。
+- **stdin 全読み込み**: stdin 入力は `io.ReadAll` で全体を読み込む。設定ファイル用途では問題ないが、巨大な入力には不向き。
 
 ---
 

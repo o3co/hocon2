@@ -47,5 +47,5 @@ go install github.com/o3co/go.hocon2/cmd/hocon2json@latest
 
 - License: Apache 2.0
 - Go module path: `github.com/o3co/go.hocon2`
-- Branch strategy: `main` (default), `develop` (work branch)
+- Branch strategy: `master` (release), `develop` (work branch)
 - Commit style: conventional commits (`feat:`, `fix:`, `chore:`, etc.)
