@@ -3,6 +3,7 @@ package convert
 import (
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/o3co/go.hocon"
 )
@@ -85,18 +86,19 @@ func printUsage(name string, w io.Writer) {
 }
 
 func formatName(name string) string {
-	if len(name) > 6 {
-		format := name[6:]
-		switch format {
-		case "json":
-			return "JSON"
-		case "yaml":
-			return "YAML"
-		case "toml":
-			return "TOML"
-		case "properties":
-			return "Properties"
-		}
+	format, found := strings.CutPrefix(name, "hocon2")
+	if !found {
+		return "the target format"
+	}
+	switch format {
+	case "json":
+		return "JSON"
+	case "yaml":
+		return "YAML"
+	case "toml":
+		return "TOML"
+	case "properties":
+		return "Properties"
 	}
 	return "the target format"
 }
