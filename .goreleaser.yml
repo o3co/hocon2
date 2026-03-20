@@ -3,29 +3,32 @@ builds:
   - id: hocon2json
     main: ./cmd/hocon2json
     binary: hocon2json
-    goos: [linux, darwin]
+    goos: [linux, darwin, windows]
     goarch: [amd64, arm64]
 
   - id: hocon2yaml
     main: ./cmd/hocon2yaml
     binary: hocon2yaml
-    goos: [linux, darwin]
+    goos: [linux, darwin, windows]
     goarch: [amd64, arm64]
 
   - id: hocon2toml
     main: ./cmd/hocon2toml
     binary: hocon2toml
-    goos: [linux, darwin]
+    goos: [linux, darwin, windows]
     goarch: [amd64, arm64]
 
   - id: hocon2properties
     main: ./cmd/hocon2properties
     binary: hocon2properties
-    goos: [linux, darwin]
+    goos: [linux, darwin, windows]
     goarch: [amd64, arm64]
 
 archives:
   - format: tar.gz
+    format_overrides:
+      - goos: windows
+        format: zip
     name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
 
 changelog:
