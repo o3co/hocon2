@@ -44,7 +44,8 @@ go.hocon2/
 ├── testdata/
 │   ├── basic.hocon / .json / .yaml / .toml / .properties
 │   ├── nested.hocon / .json / .yaml / .toml / .properties
-│   └── array.hocon / .json / .yaml / .toml / .properties
+│   ├── array.hocon / .json / .yaml / .toml / .properties
+│   └── substitution.hocon / .json / .yaml / .toml / .properties
 ├── .github/
 │   └── workflows/
 │       └── ci.yml
