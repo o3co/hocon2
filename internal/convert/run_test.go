@@ -134,6 +134,64 @@ func TestRun_UnknownFlag(t *testing.T) {
 	}
 }
 
+func TestRun_JSONCompact(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-compact"}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	output := strings.TrimSuffix(stdout.String(), "\n")
+	if strings.Contains(output, "\n") {
+		t.Errorf("expected single-line compact output, got: %q", output)
+	}
+	if !strings.Contains(output, `"name":"test"`) {
+		t.Errorf("expected compact JSON, got: %q", output)
+	}
+}
+
+func TestRun_JSONIndent(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-indent", "4"}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !strings.Contains(stdout.String(), "    \"name\"") {
+		t.Errorf("expected 4-space indent, got: %q", stdout.String())
+	}
+}
+
+func TestRun_JSONIndentInvalid(t *testing.T) {
+	tests := []struct {
+		name string
+		args []string
+	}{
+		{"zero", []string{"-indent", "0"}},
+		{"negative", []string{"-indent", "-1"}},
+		{"too_large", []string{"-indent", "17"}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			err := convert.Run("hocon2json", &convert.JSONEncoder{}, tt.args, strings.NewReader(`name = "test"`), &stdout, &stderr)
+			if err == nil {
+				t.Fatal("expected error for invalid indent value")
+			}
+		})
+	}
+}
+
+func TestRun_JSONCompactOverridesIndent(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-compact", "-indent", "4"}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	output := strings.TrimSuffix(stdout.String(), "\n")
+	if strings.Contains(output, "\n") {
+		t.Errorf("expected single-line compact output, got: %q", output)
+	}
+}
+
 type failEncoder struct{}
 
 func (failEncoder) Encode(w io.Writer, data map[string]any) error {
