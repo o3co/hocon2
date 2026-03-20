@@ -14,9 +14,7 @@ import (
 
 // skipConformance lists tests to skip with reasons.
 var skipConformance = map[string]string{
-	// equiv05 conformance: triple-quoted string whitespace handling differs
-	// between go.hocon and Lightbend reference implementation (go.hocon issue #2)
-	"equiv05/triple-quotes.conf/conformance": "go.hocon triple-quote whitespace handling differs from Lightbend reference",
+	// Currently no skips — all equiv01-05 pass with go.hocon v0.3.0.
 }
 
 func TestLightbendConformance(t *testing.T) {

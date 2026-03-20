@@ -3,7 +3,7 @@ b: |-
     hello
     world
 b1: hello\nworld
-c: "\n  hello\n world\n "
+c: "  \n  hello  \n world  \n "
 d: ' "hello" '
 e: '"hello"'
 f1: hello"
