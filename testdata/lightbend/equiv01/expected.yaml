@@ -1,0 +1,37 @@
+arrays:
+    "1":
+        - 1
+    "12":
+        - 1
+        - 2
+    "123":
+        - 1
+        - 2
+        - 3
+    empty: []
+    ofString:
+        - a
+        - b
+        - c
+booleans:
+    "false": false
+    falseAgain: false
+    "true": true
+    trueAgain: true
+floats:
+    fortyTwoPointOne: 42.1
+    fortyTwoPointOneAgain: 42.1
+ints:
+    fortyTwo: 42
+    fortyTwoAgain: 42
+nulls:
+    "null": null
+    nullAgain: null
+strings:
+    a: a
+    abcd: abcd
+    abcdAgain: abcd
+    b: b
+    c: c
+    concatenated: null bar 42 baz true 3.14 hi
+    d: d
