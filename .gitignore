@@ -1,0 +1,13 @@
+# Binaries
+/hocon2json
+*.exe
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+
+# Claude
+.claude/settings.local.json
