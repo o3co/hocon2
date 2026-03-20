@@ -30,8 +30,26 @@ func TestRun_Help(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
-	if !strings.Contains(stdout.String(), "Usage: hocon2json") {
-		t.Errorf("expected usage text, got: %s", stdout.String())
+	output := stdout.String()
+	for _, want := range []string{"Usage: hocon2json", "[OPTIONS]", "-compact", "-indent", "-o", "-overwrite"} {
+		if !strings.Contains(output, want) {
+			t.Errorf("expected %q in help output, got: %s", want, output)
+		}
+	}
+}
+
+func TestRun_HelpNoFormatFlags(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	convert.Run("hocon2yaml", convert.YAMLEncoder{}, []string{"--help"}, strings.NewReader(""), &stdout, &stderr)
+	output := stdout.String()
+	if strings.Contains(output, "-compact") {
+		t.Error("YAML help should not show -compact flag")
+	}
+	if strings.Contains(output, "-indent") {
+		t.Error("YAML help should not show -indent flag")
+	}
+	if !strings.Contains(output, "-o") {
+		t.Error("YAML help should show -o flag")
 	}
 }
 
