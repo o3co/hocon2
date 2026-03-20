@@ -113,7 +113,7 @@ import (
     "fmt"
     "os"
 
-    "github.com/o3co/go.hocon2/internal/convert"
+    "github.com/o3co/hocon2/internal/convert"
 )
 
 func main() {
@@ -196,7 +196,7 @@ func TestEncoders(t *testing.T) {
 ### README.md
 
 - プロジェクト概要と対応フォーマット
-- インストール方法（`go install github.com/o3co/go.hocon2/cmd/hocon2json@latest` 等、4コマンド分）
+- インストール方法（`go install github.com/o3co/hocon2/cmd/hocon2json@latest` 等、4コマンド分）
 - 使い方（stdin + file の例）
 - ビルド方法（`make all`）
 - ライセンス表記

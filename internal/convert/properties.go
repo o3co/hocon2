@@ -4,7 +4,7 @@ import (
 	"io"
 
 	"github.com/magiconair/properties"
-	"github.com/o3co/go.hocon2/internal/flatten"
+	"github.com/o3co/hocon2/internal/flatten"
 )
 
 // PropertiesEncoder encodes data as Java .properties format.
