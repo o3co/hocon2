@@ -140,7 +140,13 @@ make install  # install all binaries
 
 ## Related Projects
 
-- [go.hocon](https://github.com/o3co/go.hocon) — HOCON parser for Go (used by this project)
+| Project | Language | Description |
+|---------|----------|-------------|
+| [go.hocon](https://github.com/o3co/go.hocon) | Go | HOCON parser for Go (used by this project) |
+| [rs.hocon](https://github.com/o3co/rs.hocon) | Rust | HOCON parser for Rust |
+| [ts.hocon](https://github.com/o3co/ts.hocon) | TypeScript | HOCON parser for TypeScript/Node.js |
+
+All implementations are full Lightbend HOCON spec compliant.
 
 ## License
 
