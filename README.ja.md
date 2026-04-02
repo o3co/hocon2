@@ -12,19 +12,17 @@ HOCON (Human-Optimized Config Object Notation) は、人間にとって読みや
 パーサーには [go.hocon](https://github.com/o3co/go.hocon) を使用。[Lightbend のリファレンステストスイート](https://github.com/lightbend/config)で準拠性を検証済みです。
 
 > **[Claude Code](https://claude.ai/claude-code)** (Anthropic) により設計・実装されました。
+> [GitHub Copilot](https://github.com/features/copilot) および [OpenAI Codex](https://openai.com/index/openai-codex/) によるレビュー。
 
-## 対応フォーマット
+[English](README.md)
 
-| コマンド | 出力フォーマット |
-|---|---|
-| `hocon2json` | JSON |
-| `hocon2yaml` | YAML |
-| `hocon2toml` | TOML |
-| `hocon2properties` | Java Properties |
+---
 
-## インストール
+## クイックスタート
 
-### Go
+### 1. インストール
+
+#### Go
 
 ```bash
 go install github.com/o3co/hocon2/cmd/hocon2json@latest
@@ -33,13 +31,11 @@ go install github.com/o3co/hocon2/cmd/hocon2toml@latest
 go install github.com/o3co/hocon2/cmd/hocon2properties@latest
 ```
 
-### バイナリリリース
+#### バイナリリリース
 
 [リリースページ](https://github.com/o3co/hocon2/releases/latest)からビルド済みバイナリをダウンロードできます（Linux/macOS/Windows、amd64/arm64）。
 
-## 使い方
-
-### 基本的な変換
+### 2. 使い方
 
 ```bash
 # ファイルを変換
@@ -51,6 +47,25 @@ cat app.conf | hocon2yaml
 # ヘルプを表示
 hocon2json --help
 ```
+
+## なぜ hocon2？
+
+HOCON は設定の記述に最適ですが、多くのツールは JSON、YAML、TOML しか理解しません。`hocon2` がそのギャップを埋めます：
+
+- **記述** は HOCON で（可読性が高く、組み合わせ可能で DRY）
+- **デプロイ** はツールが必要とするフォーマットで（Kubernetes は JSON、Helm は YAML、Rust ツールは TOML、Java は Properties）
+- **検証** はデプロイ前に CI で構文チェック（`-validate` フラグ）
+
+## 対応フォーマット
+
+| コマンド | 出力フォーマット |
+|---|---|
+| `hocon2json` | JSON |
+| `hocon2yaml` | YAML |
+| `hocon2toml` | TOML |
+| `hocon2properties` | Java Properties |
+
+## 使い方
 
 ### オプション
 
@@ -140,7 +155,37 @@ make install  # 全バイナリをインストール
 
 ## 関連プロジェクト
 
-- [go.hocon](https://github.com/o3co/go.hocon) — Go 向け HOCON パーサー（本プロジェクトで使用）
+| プロジェクト | 言語 | 説明 |
+|---------|----------|-------------|
+| [go.hocon](https://github.com/o3co/go.hocon) | Go | Go 向け HOCON パーサー（本プロジェクトで使用） |
+| [rs.hocon](https://github.com/o3co/rs.hocon) | Rust | Rust 向け HOCON パーサー |
+| [ts.hocon](https://github.com/o3co/ts.hocon) | TypeScript | TypeScript/Node.js 向け HOCON パーサー |
+
+すべての実装が Lightbend HOCON 仕様に完全準拠しています。
+
+## ベストプラクティス
+
+### CI/CD 統合
+
+- CI パイプラインでデプロイ前に `hocon2json -validate` で HOCON の構文をチェックしましょう
+- `-env-file` を使えばシェル環境を汚さずに環境別変数を注入できます
+
+### CI での設定バリデーション
+
+```yaml
+# 例: GitHub Actions
+- name: Validate config
+  run: hocon2json -validate config/prod.conf
+```
+
+### 複数ファイルのマージ
+
+- マージ順序が重要: 後のファイルが前のファイルを上書きします
+- `base.conf` + `env.conf` パターンで環境別のオーバーライドを行いましょう:
+
+  ```bash
+  hocon2json base.conf prod.conf > config.json
+  ```
 
 ## ライセンス
 
