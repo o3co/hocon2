@@ -148,6 +148,30 @@ make install  # install all binaries
 
 All implementations are full Lightbend HOCON spec compliant.
 
+## Best Practices
+
+### CI/CD Integration
+
+- Use `hocon2json -validate` to check HOCON syntax in CI pipelines before deployment
+- Use `-env-file` to inject environment-specific variables without polluting the shell environment
+
+### Config Validation in CI
+
+```yaml
+# Example: GitHub Actions
+- name: Validate config
+  run: hocon2json -validate config/prod.conf
+```
+
+### Multi-File Merging
+
+- Merge order matters: later files override earlier ones
+- Use `base.conf` + `env.conf` pattern for environment-specific overrides:
+
+  ```bash
+  hocon2json base.conf prod.conf > config.json
+  ```
+
 ## License
 
 Apache 2.0 — see [LICENSE](LICENSE).

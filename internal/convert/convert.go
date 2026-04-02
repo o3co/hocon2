@@ -28,8 +28,12 @@ func Run(name string, enc Encoder, args []string, stdin io.Reader, stdout, stder
 
 	var outFile string
 	var overwrite bool
+	var validate bool
+	var envFile string
 	fs.StringVar(&outFile, "o", "", "output file path")
 	fs.BoolVar(&overwrite, "overwrite", false, "overwrite existing output file")
+	fs.BoolVar(&validate, "validate", false, "validate HOCON syntax only (no output)")
+	fs.StringVar(&envFile, "env-file", "", "load environment variables from file")
 
 	if fr, ok := enc.(FlagRegistrar); ok {
 		fr.RegisterFlags(fs)
@@ -44,6 +48,12 @@ func Run(name string, enc Encoder, args []string, stdin io.Reader, stdout, stder
 		return err
 	}
 
+	if envFile != "" {
+		if err := loadEnvFile(envFile); err != nil {
+			return err
+		}
+	}
+
 	cfg, err := parseInput(name, fs.Args(), stdin)
 	if err != nil {
 		return err
@@ -52,6 +62,10 @@ func Run(name string, enc Encoder, args []string, stdin io.Reader, stdout, stder
 	var m map[string]any
 	if err := cfg.Unmarshal(&m); err != nil {
 		return fmt.Errorf("unmarshaling config: %w", err)
+	}
+
+	if validate {
+		return nil
 	}
 
 	w, closer, err := openOutput(outFile, overwrite, stdout)
@@ -85,6 +99,35 @@ func openOutput(path string, overwrite bool, stdout io.Writer) (io.Writer, io.Cl
 		return nil, nil, fmt.Errorf("opening output file: %w", err)
 	}
 	return f, f, nil
+}
+
+func loadEnvFile(path string) error {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return fmt.Errorf("reading env file %s: %w", path, err)
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+		key, val, ok := strings.Cut(line, "=")
+		if !ok {
+			return fmt.Errorf("malformed line in env file %s: %q", path, line)
+		}
+		key = strings.TrimSpace(key)
+		val = strings.TrimSpace(val)
+		// Strip surrounding quotes
+		if len(val) >= 2 && ((val[0] == '"' && val[len(val)-1] == '"') || (val[0] == '\'' && val[len(val)-1] == '\'')) {
+			val = val[1 : len(val)-1]
+		}
+		if _, exists := os.LookupEnv(key); !exists {
+			if err := os.Setenv(key, val); err != nil {
+				return fmt.Errorf("setting env var %s: %w", key, err)
+			}
+		}
+	}
+	return nil
 }
 
 func parseInput(name string, args []string, stdin io.Reader) (*hocon.Config, error) {
