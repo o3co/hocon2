@@ -1,4 +1,4 @@
-# hocon2
+# hocon2 — HOCON Conversion CLI for Go
 
 [![CI](https://github.com/o3co/hocon2/actions/workflows/ci.yml/badge.svg)](https://github.com/o3co/hocon2/actions/workflows/ci.yml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/o3co/hocon2.svg)](https://pkg.go.dev/github.com/o3co/hocon2)
@@ -151,11 +151,11 @@ make install  # install all binaries
 
 ## Related Projects
 
-| Project | Language | Description |
-|---------|----------|-------------|
-| [go.hocon](https://github.com/o3co/go.hocon) | Go | HOCON parser for Go (used by this project) |
-| [rs.hocon](https://github.com/o3co/rs.hocon) | Rust | HOCON parser for Rust |
-| [ts.hocon](https://github.com/o3co/ts.hocon) | TypeScript | HOCON parser for TypeScript/Node.js |
+| Project | Language | Registry | Description |
+|---------|----------|----------|-------------|
+| [go.hocon](https://github.com/o3co/go.hocon) | Go | [pkg.go.dev](https://pkg.go.dev/github.com/o3co/go.hocon) | HOCON parser for Go (used by this project) |
+| [ts.hocon](https://github.com/o3co/ts.hocon) | TypeScript | [npm](https://www.npmjs.com/package/@o3co/ts.hocon) | HOCON parser for TypeScript/Node.js |
+| [rs.hocon](https://github.com/o3co/rs.hocon) | Rust | [crates.io](https://crates.io/crates/o3co-hocon) | HOCON parser for Rust |
 
 All implementations are full Lightbend HOCON spec compliant.
 
