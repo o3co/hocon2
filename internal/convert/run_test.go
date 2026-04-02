@@ -355,3 +355,131 @@ func TestRun_EncodeError(t *testing.T) {
 		t.Errorf("expected 'encoding output' in error, got: %v", err)
 	}
 }
+
+func TestRun_Validate(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-validate"}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if stdout.Len() != 0 {
+		t.Errorf("expected no output in validate mode, got: %s", stdout.String())
+	}
+}
+
+func TestRun_ValidateInvalid(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-validate"}, strings.NewReader("{{{{invalid"), &stdout, &stderr)
+	if err == nil {
+		t.Fatal("expected error for invalid HOCON in validate mode")
+	}
+}
+
+func TestRun_ValidateFile(t *testing.T) {
+	dir := t.TempDir()
+	f := filepath.Join(dir, "valid.conf")
+	os.WriteFile(f, []byte(`name = "test"`), 0644)
+
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-validate", f}, strings.NewReader(""), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if stdout.Len() != 0 {
+		t.Errorf("expected no output in validate mode, got: %s", stdout.String())
+	}
+}
+
+func TestRun_ValidateIgnoresOutputFlag(t *testing.T) {
+	dir := t.TempDir()
+	outPath := filepath.Join(dir, "output.json")
+
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-validate", "-o", outPath}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// Output file should NOT be created in validate mode
+	if _, err := os.Stat(outPath); err == nil {
+		t.Error("expected no output file in validate mode")
+	}
+}
+
+func TestRun_ValidateShowsInHelp(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"--help"}, strings.NewReader(""), &stdout, &stderr)
+	if !strings.Contains(stdout.String(), "-validate") {
+		t.Errorf("expected -validate in help output, got: %s", stdout.String())
+	}
+}
+
+func TestRun_EnvFile(t *testing.T) {
+	dir := t.TempDir()
+
+	envFile := filepath.Join(dir, ".env")
+	os.WriteFile(envFile, []byte("MY_HOST=example.com\nMY_PORT=3000\n"), 0644)
+
+	confFile := filepath.Join(dir, "app.conf")
+	os.WriteFile(confFile, []byte("host = ${MY_HOST}\nport = ${MY_PORT}"), 0644)
+
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-env-file", envFile, confFile}, strings.NewReader(""), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	output := stdout.String()
+	if !strings.Contains(output, `"example.com"`) {
+		t.Errorf("expected MY_HOST value in output, got: %s", output)
+	}
+	if !strings.Contains(output, `3000`) {
+		t.Errorf("expected MY_PORT value in output, got: %s", output)
+	}
+}
+
+func TestRun_EnvFileMissing(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-env-file", "/nonexistent/.env"}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err == nil {
+		t.Fatal("expected error for nonexistent env file")
+	}
+}
+
+func TestRun_EnvFileComments(t *testing.T) {
+	dir := t.TempDir()
+
+	envFile := filepath.Join(dir, ".env")
+	os.WriteFile(envFile, []byte("# comment\nKEY=value\n\n# another comment\n"), 0644)
+
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-env-file", envFile}, strings.NewReader("k = ${KEY}"), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !strings.Contains(stdout.String(), `"value"`) {
+		t.Errorf("expected KEY value in output, got: %s", stdout.String())
+	}
+}
+
+func TestRun_EnvFileQuotedValues(t *testing.T) {
+	dir := t.TempDir()
+
+	envFile := filepath.Join(dir, ".env")
+	os.WriteFile(envFile, []byte(`KEY="quoted value"`+"\n"), 0644)
+
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-env-file", envFile}, strings.NewReader("k = ${KEY}"), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !strings.Contains(stdout.String(), `"quoted value"`) {
+		t.Errorf("expected quoted value in output, got: %s", stdout.String())
+	}
+}
+
+func TestRun_EnvFileShowsInHelp(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"--help"}, strings.NewReader(""), &stdout, &stderr)
+	if !strings.Contains(stdout.String(), "-env-file") {
+		t.Errorf("expected -env-file in help output, got: %s", stdout.String())
+	}
+}
