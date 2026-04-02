@@ -423,6 +423,7 @@ func TestRun_EnvFile(t *testing.T) {
 				os.Unsetenv(k)
 			}
 		})
+		os.Unsetenv(k) // ensure loadEnvFile can set these (it won't overwrite existing vars)
 	}
 
 	dir := t.TempDir()
@@ -465,6 +466,7 @@ func TestRun_EnvFileComments(t *testing.T) {
 				os.Unsetenv(k)
 			}
 		})
+		os.Unsetenv(k)
 	}
 
 	dir := t.TempDir()
@@ -492,6 +494,7 @@ func TestRun_EnvFileQuotedValues(t *testing.T) {
 				os.Unsetenv(k)
 			}
 		})
+		os.Unsetenv(k)
 	}
 
 	dir := t.TempDir()

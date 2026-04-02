@@ -113,7 +113,7 @@ func loadEnvFile(path string) error {
 		}
 		key, val, ok := strings.Cut(line, "=")
 		if !ok {
-			continue
+			return fmt.Errorf("malformed line in env file %s: %q", path, line)
 		}
 		key = strings.TrimSpace(key)
 		val = strings.TrimSpace(val)
@@ -121,8 +121,10 @@ func loadEnvFile(path string) error {
 		if len(val) >= 2 && ((val[0] == '"' && val[len(val)-1] == '"') || (val[0] == '\'' && val[len(val)-1] == '\'')) {
 			val = val[1 : len(val)-1]
 		}
-		if err := os.Setenv(key, val); err != nil {
-			return fmt.Errorf("setting env var %s: %w", key, err)
+		if _, exists := os.LookupEnv(key); !exists {
+			if err := os.Setenv(key, val); err != nil {
+				return fmt.Errorf("setting env var %s: %w", key, err)
+			}
 		}
 	}
 	return nil
