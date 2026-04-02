@@ -12,19 +12,13 @@ HOCON (Human-Optimized Config Object Notation) is a superset of JSON designed fo
 Powered by [go.hocon](https://github.com/o3co/go.hocon) parser. Conformance tested against [Lightbend's reference test suite](https://github.com/lightbend/config).
 
 > **Implemented by [Claude Code](https://claude.ai/claude-code)** (Anthropic) — designed and built end-to-end with Claude Code.
+> Reviewed by [GitHub Copilot](https://github.com/features/copilot) and [OpenAI Codex](https://openai.com/index/openai-codex/).
 
-## Supported Formats
+## Quick Start
 
-| Command | Output Format |
-|---|---|
-| `hocon2json` | JSON |
-| `hocon2yaml` | YAML |
-| `hocon2toml` | TOML |
-| `hocon2properties` | Java Properties |
+### 1. Install
 
-## Install
-
-### Go
+#### Go
 
 ```bash
 go install github.com/o3co/hocon2/cmd/hocon2json@latest
@@ -33,13 +27,11 @@ go install github.com/o3co/hocon2/cmd/hocon2toml@latest
 go install github.com/o3co/hocon2/cmd/hocon2properties@latest
 ```
 
-### Binary releases
+#### Binary releases
 
 Download pre-built binaries from the [releases page](https://github.com/o3co/hocon2/releases/latest) (Linux/macOS/Windows, amd64/arm64).
 
-## Usage
-
-### Basic conversion
+### 2. Use
 
 ```bash
 # Convert a file
@@ -51,6 +43,25 @@ cat app.conf | hocon2yaml
 # Show help
 hocon2json --help
 ```
+
+## Why hocon2?
+
+HOCON is great for authoring config, but many tools only understand JSON, YAML, or TOML. `hocon2` bridges this gap:
+
+- **Write** config in HOCON (readable, composable, DRY)
+- **Deploy** in whatever format your tools need (JSON for Kubernetes, YAML for Helm, TOML for Rust tools, Properties for Java)
+- **Validate** syntax in CI before deployment (`-validate` flag)
+
+## Supported Formats
+
+| Command | Output Format |
+|---|---|
+| `hocon2json` | JSON |
+| `hocon2yaml` | YAML |
+| `hocon2toml` | TOML |
+| `hocon2properties` | Java Properties |
+
+## Usage
 
 ### Options
 
