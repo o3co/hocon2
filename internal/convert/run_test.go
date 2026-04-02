@@ -414,6 +414,17 @@ func TestRun_ValidateShowsInHelp(t *testing.T) {
 }
 
 func TestRun_EnvFile(t *testing.T) {
+	for _, k := range []string{"MY_HOST", "MY_PORT"} {
+		orig, existed := os.LookupEnv(k)
+		t.Cleanup(func() {
+			if existed {
+				os.Setenv(k, orig)
+			} else {
+				os.Unsetenv(k)
+			}
+		})
+	}
+
 	dir := t.TempDir()
 
 	envFile := filepath.Join(dir, ".env")
@@ -445,29 +456,51 @@ func TestRun_EnvFileMissing(t *testing.T) {
 }
 
 func TestRun_EnvFileComments(t *testing.T) {
+	for _, k := range []string{"HOCON2_TEST_KEY"} {
+		orig, existed := os.LookupEnv(k)
+		t.Cleanup(func() {
+			if existed {
+				os.Setenv(k, orig)
+			} else {
+				os.Unsetenv(k)
+			}
+		})
+	}
+
 	dir := t.TempDir()
 
 	envFile := filepath.Join(dir, ".env")
-	os.WriteFile(envFile, []byte("# comment\nKEY=value\n\n# another comment\n"), 0644)
+	os.WriteFile(envFile, []byte("# comment\nHOCON2_TEST_KEY=value\n\n# another comment\n"), 0644)
 
 	var stdout, stderr bytes.Buffer
-	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-env-file", envFile}, strings.NewReader("k = ${KEY}"), &stdout, &stderr)
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-env-file", envFile}, strings.NewReader("k = ${HOCON2_TEST_KEY}"), &stdout, &stderr)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 	if !strings.Contains(stdout.String(), `"value"`) {
-		t.Errorf("expected KEY value in output, got: %s", stdout.String())
+		t.Errorf("expected HOCON2_TEST_KEY value in output, got: %s", stdout.String())
 	}
 }
 
 func TestRun_EnvFileQuotedValues(t *testing.T) {
+	for _, k := range []string{"HOCON2_TEST_KEY"} {
+		orig, existed := os.LookupEnv(k)
+		t.Cleanup(func() {
+			if existed {
+				os.Setenv(k, orig)
+			} else {
+				os.Unsetenv(k)
+			}
+		})
+	}
+
 	dir := t.TempDir()
 
 	envFile := filepath.Join(dir, ".env")
-	os.WriteFile(envFile, []byte(`KEY="quoted value"`+"\n"), 0644)
+	os.WriteFile(envFile, []byte(`HOCON2_TEST_KEY="quoted value"`+"\n"), 0644)
 
 	var stdout, stderr bytes.Buffer
-	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-env-file", envFile}, strings.NewReader("k = ${KEY}"), &stdout, &stderr)
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-env-file", envFile}, strings.NewReader("k = ${HOCON2_TEST_KEY}"), &stdout, &stderr)
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

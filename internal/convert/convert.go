@@ -59,14 +59,13 @@ func Run(name string, enc Encoder, args []string, stdin io.Reader, stdout, stder
 		return err
 	}
 
-	if validate {
-		// Parsing succeeded — config is valid
-		return nil
-	}
-
 	var m map[string]any
 	if err := cfg.Unmarshal(&m); err != nil {
 		return fmt.Errorf("unmarshaling config: %w", err)
+	}
+
+	if validate {
+		return nil
 	}
 
 	w, closer, err := openOutput(outFile, overwrite, stdout)
@@ -122,7 +121,9 @@ func loadEnvFile(path string) error {
 		if len(val) >= 2 && ((val[0] == '"' && val[len(val)-1] == '"') || (val[0] == '\'' && val[len(val)-1] == '\'')) {
 			val = val[1 : len(val)-1]
 		}
-		os.Setenv(key, val)
+		if err := os.Setenv(key, val); err != nil {
+			return fmt.Errorf("setting env var %s: %w", key, err)
+		}
 	}
 	return nil
 }
