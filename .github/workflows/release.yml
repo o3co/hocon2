@@ -20,6 +20,11 @@ jobs:
         with:
           go-version: '1.25'
 
+      - name: Delete existing release if re-tagging
+        run: gh release delete "${{ github.ref_name }}" --yes 2>/dev/null || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - uses: goreleaser/goreleaser-action@v6
         with:
           version: latest
