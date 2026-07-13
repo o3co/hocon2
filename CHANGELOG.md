@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Fixed
+
+- `-validate` now stops after parsing, making it a pure syntax check as documented (#16)
+- Failed encodes no longer corrupt the output file — output is written to a temp file and renamed into place atomically (#15)
+- `-env-file` now accepts `export KEY=value` lines as written by direnv/dotenv (#14)
+
 ## [0.5.0] - 2026-04-07
 
 ### Changed
