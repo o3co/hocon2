@@ -2,6 +2,7 @@ package convert_test
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -266,6 +267,47 @@ func TestRun_OutputFileNoDir(t *testing.T) {
 	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-o", "/nonexistent/dir/out.json"}, strings.NewReader(`name = "test"`), &stdout, &stderr)
 	if err == nil {
 		t.Fatal("expected error for nonexistent directory")
+	}
+}
+
+type failingEncoder struct{}
+
+func (failingEncoder) Encode(w io.Writer, data map[string]any) error {
+	io.WriteString(w, "partial garbage")
+	return errors.New("encode failed")
+}
+
+func TestRun_OutputFilePreservedOnEncodeError(t *testing.T) {
+	dir := t.TempDir()
+	outPath := filepath.Join(dir, "existing.json")
+	os.WriteFile(outPath, []byte("old content"), 0644)
+
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", failingEncoder{}, []string{"-o", outPath, "-overwrite"}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err == nil {
+		t.Fatal("expected encode error")
+	}
+	data, _ := os.ReadFile(outPath)
+	if string(data) != "old content" {
+		t.Errorf("existing output file was corrupted, got: %s", data)
+	}
+	entries, _ := os.ReadDir(dir)
+	if len(entries) != 1 {
+		t.Errorf("expected temp file to be cleaned up, dir has: %v", entries)
+	}
+}
+
+func TestRun_NoOutputFileOnEncodeError(t *testing.T) {
+	dir := t.TempDir()
+	outPath := filepath.Join(dir, "new.json")
+
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", failingEncoder{}, []string{"-o", outPath}, strings.NewReader(`name = "test"`), &stdout, &stderr)
+	if err == nil {
+		t.Fatal("expected encode error")
+	}
+	if entries, _ := os.ReadDir(dir); len(entries) != 0 {
+		t.Errorf("expected no files after failed encode, dir has: %v", entries)
 	}
 }
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/o3co/go.hocon"
@@ -68,37 +69,49 @@ func Run(name string, enc Encoder, args []string, stdin io.Reader, stdout, stder
 		return fmt.Errorf("unmarshaling config: %w", err)
 	}
 
-	w, closer, err := openOutput(outFile, overwrite, stdout)
-	if err != nil {
-		return err
-	}
-	if closer != nil {
-		defer closer.Close()
-	}
-
-	if err := enc.Encode(w, m); err != nil {
-		return fmt.Errorf("encoding output: %w", err)
+	if outFile == "" {
+		if err := enc.Encode(stdout, m); err != nil {
+			return fmt.Errorf("encoding output: %w", err)
+		}
+		return nil
 	}
 
-	return nil
+	return writeOutputFile(outFile, overwrite, enc, m)
 }
 
-func openOutput(path string, overwrite bool, stdout io.Writer) (io.Writer, io.Closer, error) {
-	if path == "" {
-		return stdout, nil, nil
-	}
-
+// writeOutputFile encodes into a temp file in the destination directory and
+// renames it into place, so a failed encode never corrupts an existing file.
+func writeOutputFile(path string, overwrite bool, enc Encoder, data map[string]any) (err error) {
 	if !overwrite {
-		if _, err := os.Stat(path); err == nil {
-			return nil, nil, fmt.Errorf("output file %s already exists (use -overwrite to replace)", path)
+		if _, statErr := os.Stat(path); statErr == nil {
+			return fmt.Errorf("output file %s already exists (use -overwrite to replace)", path)
 		}
 	}
 
-	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+	tmp, err := os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+".tmp*")
 	if err != nil {
-		return nil, nil, fmt.Errorf("opening output file: %w", err)
+		return fmt.Errorf("creating temp output file: %w", err)
 	}
-	return f, f, nil
+	defer func() {
+		if err != nil {
+			tmp.Close()
+			os.Remove(tmp.Name())
+		}
+	}()
+
+	if err = enc.Encode(tmp, data); err != nil {
+		return fmt.Errorf("encoding output: %w", err)
+	}
+	if err = tmp.Close(); err != nil {
+		return fmt.Errorf("writing output file: %w", err)
+	}
+	if err = os.Chmod(tmp.Name(), 0644); err != nil {
+		return fmt.Errorf("setting output file permissions: %w", err)
+	}
+	if err = os.Rename(tmp.Name(), path); err != nil {
+		return fmt.Errorf("renaming output file into place: %w", err)
+	}
+	return nil
 }
 
 func loadEnvFile(path string) error {
