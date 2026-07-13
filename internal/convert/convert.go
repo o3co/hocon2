@@ -111,6 +111,10 @@ func loadEnvFile(path string) error {
 		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
+		// direnv / dotenv files commonly write `export KEY=value`
+		if rest, found := strings.CutPrefix(line, "export "); found {
+			line = strings.TrimSpace(rest)
+		}
 		key, val, ok := strings.Cut(line, "=")
 		if !ok {
 			return fmt.Errorf("malformed line in env file %s: %q", path, line)

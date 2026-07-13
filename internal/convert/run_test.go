@@ -512,6 +512,37 @@ func TestRun_EnvFileQuotedValues(t *testing.T) {
 	}
 }
 
+func TestRun_EnvFileExportPrefix(t *testing.T) {
+	for _, k := range []string{"HOCON2_TEST_KEY"} {
+		orig, existed := os.LookupEnv(k)
+		t.Cleanup(func() {
+			if existed {
+				os.Setenv(k, orig)
+			} else {
+				os.Unsetenv(k)
+			}
+		})
+		os.Unsetenv(k)
+	}
+
+	dir := t.TempDir()
+
+	envFile := filepath.Join(dir, ".env")
+	os.WriteFile(envFile, []byte("export HOCON2_TEST_KEY=exported\n"), 0644)
+
+	var stdout, stderr bytes.Buffer
+	err := convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"-env-file", envFile}, strings.NewReader("k = ${HOCON2_TEST_KEY}"), &stdout, &stderr)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if !strings.Contains(stdout.String(), `"exported"`) {
+		t.Errorf("expected exported value in output, got: %s", stdout.String())
+	}
+	if _, exists := os.LookupEnv("export HOCON2_TEST_KEY"); exists {
+		t.Error("malformed 'export HOCON2_TEST_KEY' variable was set")
+	}
+}
+
 func TestRun_EnvFileShowsInHelp(t *testing.T) {
 	var stdout, stderr bytes.Buffer
 	convert.Run("hocon2json", &convert.JSONEncoder{}, []string{"--help"}, strings.NewReader(""), &stdout, &stderr)
