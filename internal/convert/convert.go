@@ -59,13 +59,13 @@ func Run(name string, enc Encoder, args []string, stdin io.Reader, stdout, stder
 		return err
 	}
 
+	if validate {
+		return nil
+	}
+
 	var m map[string]any
 	if err := cfg.Unmarshal(&m); err != nil {
 		return fmt.Errorf("unmarshaling config: %w", err)
-	}
-
-	if validate {
-		return nil
 	}
 
 	w, closer, err := openOutput(outFile, overwrite, stdout)
