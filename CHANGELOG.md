@@ -6,6 +6,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+
+- Bump `go.hocon` parser from v1.1.0 to v1.8.0 — brings Lightbend-parity fixes for include-scope substitution resolution, `+=` accumulation across includes, self-referential append chains, key-path whitespace/trailing-dot handling, and improved `Unmarshal` (null preservation in `map[string]any`, numeric-keyed objects to slices)
+
 ### Fixed
 
 - `-validate` now stops after parsing, making it a pure syntax check as documented (#16)
