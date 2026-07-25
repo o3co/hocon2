@@ -2,8 +2,8 @@ github.com/BurntSushi/toml v1.6.0 h1:dRaEfpa2VI55EwlIW72hMRHdWouJeRF7TPYhI+AUQjk
 github.com/BurntSushi/toml v1.6.0/go.mod h1:ukJfTF/6rtPPRCnwkur4qwRxa8vTRFBF0uk2lLoLwho=
 github.com/magiconair/properties v1.8.10 h1:s31yESBquKXCV9a/ScB3ESkOjUYYv+X0rg8SYxI99mE=
 github.com/magiconair/properties v1.8.10/go.mod h1:Dhd985XPs7jluiymwWYZ0G4Z61jb3vdS329zhj2hYo0=
-github.com/o3co/go.hocon v1.8.0 h1:0KB6q2yzGKTsezqxFLnUtQc7zKaCNuvesp0Djnfs1yg=
-github.com/o3co/go.hocon v1.8.0/go.mod h1:S/ziCpgzWC45bxfhEZ4TBjPo0CJxoSjJ/BLXKt83f6E=
+github.com/o3co/go.hocon v1.10.0 h1:QfznWrMsJ0E2hhEDx39fKrCrB3+FhM6Tr+c3fhBfxd0=
+github.com/o3co/go.hocon v1.10.0/go.mod h1:S/ziCpgzWC45bxfhEZ4TBjPo0CJxoSjJ/BLXKt83f6E=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
 gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=

@@ -8,7 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Changed
 
-- Bump `go.hocon` parser from v1.1.0 to v1.8.0 — brings Lightbend-parity fixes for include-scope substitution resolution, `+=` accumulation across includes, self-referential append chains, key-path whitespace/trailing-dot handling, and improved `Unmarshal` (null preservation in `map[string]any`, numeric-keyed objects to slices)
+- Bump `go.hocon` parser from v1.1.0 to **v1.10.0** — brings Lightbend-parity
+  fixes for include-scope substitution resolution, `+=` accumulation across
+  includes, self-referential append chains, key-path whitespace/trailing-dot
+  handling, and improved `Unmarshal` (null preservation in `map[string]any`,
+  numeric-keyed objects to slices). v1.9.0–v1.10.0 add the S3.1/S3.5/S19.8/S11.7/S8.1
+  spec corrections and the full `java.util.Properties` include syntax (S23.5/S23.6).
+  The v1.10.0 `adapters/` module is a separate Go module and is not pulled in.
 
 ### Fixed
 
