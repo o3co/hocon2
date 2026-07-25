@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-07-25
+
 ### Changed
 
 - Bump `go.hocon` parser from v1.1.0 to **v1.10.0** — brings Lightbend-parity
