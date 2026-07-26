@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-07-26
+
 ### Added — reverse conversion (foreign format → HOCON)
 
 - **Four new commands read a JSON / YAML / TOML / Properties file and render
