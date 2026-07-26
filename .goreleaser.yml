@@ -24,6 +24,31 @@ builds:
     goos: [linux, darwin, windows]
     goarch: [amd64, arm64]
 
+  # Reverse conversion: foreign format -> HOCON (v0.7.0).
+  - id: json2hocon
+    main: ./cmd/json2hocon
+    binary: json2hocon
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+
+  - id: yaml2hocon
+    main: ./cmd/yaml2hocon
+    binary: yaml2hocon
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+
+  - id: toml2hocon
+    main: ./cmd/toml2hocon
+    binary: toml2hocon
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+
+  - id: properties2hocon
+    main: ./cmd/properties2hocon
+    binary: properties2hocon
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+
 archives:
   - format: tar.gz
     format_overrides:

@@ -25,6 +25,12 @@ go install github.com/o3co/hocon2/cmd/hocon2json@latest
 go install github.com/o3co/hocon2/cmd/hocon2yaml@latest
 go install github.com/o3co/hocon2/cmd/hocon2toml@latest
 go install github.com/o3co/hocon2/cmd/hocon2properties@latest
+
+# Reverse: foreign format -> HOCON (v0.7.0)
+go install github.com/o3co/hocon2/cmd/json2hocon@latest
+go install github.com/o3co/hocon2/cmd/yaml2hocon@latest
+go install github.com/o3co/hocon2/cmd/toml2hocon@latest
+go install github.com/o3co/hocon2/cmd/properties2hocon@latest
 ```
 
 #### Binary releases
@@ -51,8 +57,11 @@ HOCON is great for authoring config, but many tools only understand JSON, YAML, 
 - **Write** config in HOCON (readable, composable, DRY)
 - **Deploy** in whatever format your tools need (JSON for Kubernetes, YAML for Helm, TOML for Rust tools, Properties for Java)
 - **Validate** syntax in CI before deployment (`-validate` flag)
+- **Import** an existing JSON/YAML/TOML/Properties file into HOCON with the reverse `*2hocon` commands
 
 ## Supported Formats
+
+HOCON to another format:
 
 | Command | Output Format |
 |---|---|
@@ -60,6 +69,27 @@ HOCON is great for authoring config, but many tools only understand JSON, YAML, 
 | `hocon2yaml` | YAML |
 | `hocon2toml` | TOML |
 | `hocon2properties` | Java Properties |
+
+Another format to HOCON (v0.7.0):
+
+| Command | Input Format |
+|---|---|
+| `json2hocon` | JSON |
+| `yaml2hocon` | YAML |
+| `toml2hocon` | TOML |
+| `properties2hocon` | Java Properties |
+
+The reverse commands read the foreign file, build a value tree, and render idiomatic
+HOCON. Foreign data stays data: a `${...}` in an input value is emitted literally, not
+resolved. Values keep their type across the round trip — a Properties value or a JSON
+string `"8080"` is quoted so it re-parses as a string, not a number. Reading uses the
+same format-mapping rules as the [go.hocon adapters](https://github.com/o3co/go.hocon/tree/main/adapters)
+(TOML dates become strings, YAML follows the 1.2 core schema, a UTF-8 BOM is stripped),
+so the two never drift.
+
+YAML scalar resolution is the YAML library's answer, not a guarantee here: whether a
+bare `010` is `8` or `10` depends on the parser. Quote values that must survive
+verbatim.
 
 ## Usage
 

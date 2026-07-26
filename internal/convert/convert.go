@@ -69,19 +69,22 @@ func Run(name string, enc Encoder, args []string, stdin io.Reader, stdout, stder
 		return fmt.Errorf("unmarshaling config: %w", err)
 	}
 
+	write := func(w io.Writer) error { return enc.Encode(w, m) }
 	if outFile == "" {
-		if err := enc.Encode(stdout, m); err != nil {
+		if err := write(stdout); err != nil {
 			return fmt.Errorf("encoding output: %w", err)
 		}
 		return nil
 	}
 
-	return writeOutputFile(outFile, overwrite, enc, m)
+	return writeOutputFile(outFile, overwrite, write)
 }
 
-// writeOutputFile encodes into a temp file in the destination directory and
-// renames it into place, so a failed encode never corrupts an existing file.
-func writeOutputFile(path string, overwrite bool, enc Encoder, data map[string]any) (err error) {
+// writeOutputFile writes into a temp file in the destination directory and
+// renames it into place, so a failed write never corrupts an existing file.
+// The write closure produces the output — an encoder for forward conversion, a
+// rendered HOCON string for reverse.
+func writeOutputFile(path string, overwrite bool, write func(io.Writer) error) (err error) {
 	if !overwrite {
 		if _, statErr := os.Stat(path); statErr == nil {
 			return fmt.Errorf("output file %s already exists (use -overwrite to replace)", path)
@@ -99,8 +102,11 @@ func writeOutputFile(path string, overwrite bool, enc Encoder, data map[string]a
 		}
 	}()
 
-	if err = enc.Encode(tmp, data); err != nil {
-		return fmt.Errorf("encoding output: %w", err)
+	if err = write(tmp); err != nil {
+		// Neutral wording: write produces the output for either direction (an
+		// encoder for forward, a rendered string for reverse), so this is not
+		// necessarily an encoding failure.
+		return fmt.Errorf("writing output: %w", err)
 	}
 	if err = tmp.Close(); err != nil {
 		return fmt.Errorf("writing output file: %w", err)
