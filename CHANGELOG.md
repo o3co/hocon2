@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added — reverse conversion (foreign format → HOCON)
+
+- **Four new commands read a JSON / YAML / TOML / Properties file and render
+  HOCON**: `json2hocon`, `yaml2hocon`, `toml2hocon`, `properties2hocon`. This
+  completes the bidirectional promise (`hocon2X` was one-way); an existing config
+  in another format can now be imported into HOCON.
+- Input parsing reuses the [go.hocon adapters](https://github.com/o3co/go.hocon/tree/main/adapters)
+  so the format-mapping rules (TOML dates → strings, YAML 1.2 core schema, BOM
+  stripping) are shared with the parser libraries rather than a second copy that
+  could drift. Output uses the new `Config.RenderHOCON()` emitter
+  (go.hocon v1.11.0).
+- The conversion preserves types across the round trip: a Properties value or a
+  JSON string `"8080"` is quoted so it re-parses as a string, not a number. A
+  `${...}` in an input value is emitted **literally** — foreign data is data, not
+  a substitution to resolve.
+- The reverse commands mirror the forward ones: `-o` / `-overwrite` / `-validate`,
+  stdin or one FILE, and the same atomic output write. There is no `-env-file`
+  (nothing to resolve). Reverse takes a single input, not a merge set.
+- Note: YAML scalar resolution is the YAML library's answer, not a guarantee here
+  — whether a bare `010` is `8` or `10` depends on the parser. Quote values that
+  must survive verbatim.
+
+### Changed
+
+- Bump `go.hocon` from v1.10.0 to **v1.11.0** (adds the `RenderHOCON()` emitter
+  and adapter fixes) and add `go.hocon/adapters` **v1.11.0** as a direct
+  dependency (the reverse decoders reuse it for input parsing).
+
 ## [0.6.0] - 2026-07-25
 
 ### Changed
