@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed — go.hocon 1.12.0, which changes what `.env` input is accepted
+
+The parser and adapters move from v1.11.0 to v1.12.0. Most of that release is
+adapter hardening that reaches hocon2 without any behaviour a user would notice
+— a silent U+FFFD substitution stopped, a depth limit added, a YAML stream whose
+first document was empty no longer discarding the file.
+
+One change is **BREAKING in both directions** and does reach `env2hocon`:
+
+- the prefix filter now runs **before** validation, so a `.env` that used to be
+  rejected may now load
+- a variable name containing whitespace or `#` is now **refused**, so a `.env`
+  that used to load may now fail — quote or fix the name
+
+Whitespace there is the Unicode `White_Space` property, pinned across the four
+implementations rather than inherited from each language's stdlib
+([xx.hocon#78](https://github.com/o3co/xx.hocon/issues/78)). Full detail in the
+[go.hocon 1.12.0 release notes](https://github.com/o3co/go.hocon/releases/tag/v1.12.0).
+
 ## [0.7.0] - 2026-07-26
 
 ### Added — reverse conversion (foreign format → HOCON)
