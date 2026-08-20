@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed — go.hocon 1.13.0: the four-implementation spec-correction release
+
+The parser and adapters move from v1.12.0 to v1.13.0, the lockstep release that
+aligns all four sibling implementations with Lightbend on a group of spec
+corrections. What reaches hocon2:
+
+- **Triple-quoted strings preserve CR/CRLF verbatim** (previously normalized to
+  LF). A conversion whose HOCON input carries `\r\n` inside `"""…"""` now
+  reproduces it in the output — BREAKING if a downstream consumer relied on the
+  old normalization.
+- **Self-reference and delayed-merge corrections (S9.2 / S13.12 / S13a.12)** —
+  edge cases around `a = ${a}` chains and object-over-array overrides now
+  resolve the way Lightbend does, so some inputs produce different
+  (now-correct) trees, and some previously-accepted cycles are now errors.
+- The `*2hocon` reverse converters now quote a bare `include` key
+  (`"include" = …`) in their output, which Lightbend would otherwise reject on
+  re-parse.
+
+Full detail in the
+[go.hocon 1.13.0 release notes](https://github.com/o3co/go.hocon/releases/tag/v1.13.0).
+
 ### Changed — go.hocon 1.12.0, which changes what `.env` input is accepted
 
 The parser and adapters move from v1.11.0 to v1.12.0. Most of that release is
