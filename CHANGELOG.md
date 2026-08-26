@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-08-26
+
 ### Changed — go.hocon 1.13.0: the four-implementation spec-correction release
 
 The parser and adapters move from v1.12.0 to v1.13.0, the lockstep release that
