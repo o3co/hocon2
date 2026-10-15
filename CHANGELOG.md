@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-10-16
+
 ### Changed — go.hocon 1.14.0: Lightbend number reading
 
 The parser and adapters move from v1.13.0 to v1.14.0. What reaches hocon2's
