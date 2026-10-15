@@ -11,6 +11,8 @@ HOCON (Human-Optimized Config Object Notation) is a superset of JSON designed fo
 
 Powered by [go.hocon](https://github.com/o3co/go.hocon) parser. Conformance tested against [Lightbend's reference test suite](https://github.com/lightbend/config).
 
+**Docs:** [o3co.github.io/hocon](https://o3co.github.io/hocon/) — the cross-language hub for all four implementations, the hocon2 CLI and the shared conformance corpus.
+
 > **Implemented by [Claude Code](https://claude.ai/claude-code)** (Anthropic) — designed and built end-to-end with Claude Code.
 > Reviewed by [GitHub Copilot](https://github.com/features/copilot) and [OpenAI Codex](https://openai.com/index/openai-codex/).
 
