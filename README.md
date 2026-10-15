@@ -85,7 +85,7 @@ The reverse commands read the foreign file, build a value tree, and render idiom
 HOCON. Foreign data stays data: a `${...}` in an input value is emitted literally, not
 resolved. Values keep their type across the round trip — a Properties value or a JSON
 string `"8080"` is quoted so it re-parses as a string, not a number. Reading uses the
-same format-mapping rules as the [go.hocon adapters](https://github.com/o3co/go.hocon/tree/main/adapters)
+same format-mapping rules as the [go.hocon adapters](https://github.com/o3co/go.hocon/tree/develop/adapters)
 (TOML dates become strings, YAML follows the 1.2 core schema, a UTF-8 BOM is stripped),
 so the two never drift.
 
