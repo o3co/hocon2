@@ -97,7 +97,7 @@ implementations rather than inherited from each language's stdlib
   HOCON**: `json2hocon`, `yaml2hocon`, `toml2hocon`, `properties2hocon`. This
   completes the bidirectional promise (`hocon2X` was one-way); an existing config
   in another format can now be imported into HOCON.
-- Input parsing reuses the [go.hocon adapters](https://github.com/o3co/go.hocon/tree/main/adapters)
+- Input parsing reuses the [go.hocon adapters](https://github.com/o3co/go.hocon/tree/develop/adapters)
   so the format-mapping rules (TOML dates → strings, YAML 1.2 core schema, BOM
   stripping) are shared with the parser libraries rather than a second copy that
   could drift. Output uses the new `Config.RenderHOCON()` emitter

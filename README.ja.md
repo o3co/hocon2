@@ -31,6 +31,12 @@ go install github.com/o3co/hocon2/cmd/hocon2json@latest
 go install github.com/o3co/hocon2/cmd/hocon2yaml@latest
 go install github.com/o3co/hocon2/cmd/hocon2toml@latest
 go install github.com/o3co/hocon2/cmd/hocon2properties@latest
+
+# 逆方向: 他フォーマット -> HOCON (v0.7.0)
+go install github.com/o3co/hocon2/cmd/json2hocon@latest
+go install github.com/o3co/hocon2/cmd/yaml2hocon@latest
+go install github.com/o3co/hocon2/cmd/toml2hocon@latest
+go install github.com/o3co/hocon2/cmd/properties2hocon@latest
 ```
 
 #### バイナリリリース
@@ -57,8 +63,11 @@ HOCON は設定の記述に最適ですが、多くのツールは JSON、YAML�
 - **記述** は HOCON で（可読性が高く、組み合わせ可能で DRY）
 - **デプロイ** はツールが必要とするフォーマットで（Kubernetes は JSON、Helm は YAML、Rust ツールは TOML、Java は Properties）
 - **検証** はデプロイ前に CI で構文チェック（`-validate` フラグ）
+- **取り込み** 既存の JSON/YAML/TOML/Properties ファイルを、逆方向の `*2hocon` コマンドで HOCON に変換
 
 ## 対応フォーマット
+
+HOCON から他のフォーマットへ:
 
 | コマンド | 出力フォーマット |
 |---|---|
@@ -66,6 +75,19 @@ HOCON は設定の記述に最適ですが、多くのツールは JSON、YAML�
 | `hocon2yaml` | YAML |
 | `hocon2toml` | TOML |
 | `hocon2properties` | Java Properties |
+
+他のフォーマットから HOCON へ (v0.7.0):
+
+| コマンド | 入力フォーマット |
+|---|---|
+| `json2hocon` | JSON |
+| `yaml2hocon` | YAML |
+| `toml2hocon` | TOML |
+| `properties2hocon` | Java Properties |
+
+逆方向のコマンドは、入力ファイルを読んで値のツリーを作り、慣用的な HOCON として出力します。外部のデータはあくまでデータで、入力値の中の `${...}` は解決されずにそのまま出力されます。値の型は往復しても保たれます — Properties の値や JSON の文字列 `"8080"` は、数値ではなく文字列として読み直されるようにクォートされます。読み込みは [go.hocon のアダプタ](https://github.com/o3co/go.hocon/tree/develop/adapters)と同じフォーマット変換規則を使うので（TOML の日時は文字列に、YAML は 1.2 core schema に従い、UTF-8 の BOM は除去）、両者がずれることはありません。
+
+YAML のスカラーの解決は YAML ライブラリの答えであって、ここでの保証ではありません。クォートなしの `010` が `8` になるか `10` になるかはパーサー次第です。そのまま残したい値はクォートしてください。
 
 ## 使い方
 
@@ -149,7 +171,7 @@ $ hocon2json app.conf
 ## ビルド
 
 ```bash
-make all      # vet + test + build
+make all      # lint + test + build
 make build    # ビルドのみ
 make test     # テストのみ
 make install  # 全バイナリをインストール
@@ -161,9 +183,10 @@ make install  # 全バイナリをインストール
 |---------|----------|----------|-------------|
 | [go.hocon](https://github.com/o3co/go.hocon) | Go | [pkg.go.dev](https://pkg.go.dev/github.com/o3co/go.hocon) | Go 向け HOCON パーサー（本プロジェクトで使用） |
 | [ts.hocon](https://github.com/o3co/ts.hocon) | TypeScript | [npm](https://www.npmjs.com/package/@o3co/ts.hocon) | TypeScript/Node.js 向け HOCON パーサー |
-| [rs.hocon](https://github.com/o3co/rs.hocon) | Rust | [crates.io](https://crates.io/crates/o3co-hocon) | Rust 向け HOCON パーサー |
+| [rs.hocon](https://github.com/o3co/rs.hocon) | Rust | [crates.io](https://crates.io/crates/hocon-parser) | Rust 向け HOCON パーサー |
+| [py.hocon](https://github.com/o3co/py.hocon) | Python | [PyPI](https://pypi.org/project/hocon-parser/) | Python 向け HOCON パーサー |
 
-すべての実装が Lightbend HOCON 仕様に完全準拠しています。
+4 つのパーサー実装は同じ Lightbend HOCON 仕様で追跡されています — 実装ごとの準拠率は[実装横断のロールアップ](https://github.com/o3co/xx.hocon/blob/main/docs/compliance-matrix.md)を参照してください。
 
 ## ベストプラクティス
 

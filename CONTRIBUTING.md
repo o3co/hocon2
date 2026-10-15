@@ -15,8 +15,9 @@ make all
 
 ## Branch Strategy
 
-- `master` — release branch (protected: PR + CI required)
-- `develop` — default work branch
+- `develop` — the default and only long-lived branch (protected: PR + CI
+  required). Releases are tags on `develop`; there is no separate release
+  branch.
 
 ## Workflow
 
