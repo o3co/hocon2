@@ -11,6 +11,8 @@ HOCON (Human-Optimized Config Object Notation) は、人間にとって読みや
 
 パーサーには [go.hocon](https://github.com/o3co/go.hocon) を使用。[Lightbend のリファレンステストスイート](https://github.com/lightbend/config)で準拠性を検証済みです。
 
+**ドキュメント:** [o3co.github.io/hocon](https://o3co.github.io/hocon/) — 4 実装・hocon2 CLI・共通の準拠コーパスをまとめた横断ハブです。
+
 > **[Claude Code](https://claude.ai/claude-code)** (Anthropic) により設計・実装されました。
 > [GitHub Copilot](https://github.com/features/copilot) および [OpenAI Codex](https://openai.com/index/openai-codex/) によるレビュー。
 
