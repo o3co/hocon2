@@ -175,7 +175,7 @@ $ hocon2json app.conf
 ## Build
 
 ```bash
-make all      # vet + test + build
+make all      # lint + test + build
 make build    # build only
 make test     # test only
 make install  # install all binaries
@@ -187,9 +187,10 @@ make install  # install all binaries
 |---------|----------|----------|-------------|
 | [go.hocon](https://github.com/o3co/go.hocon) | Go | [pkg.go.dev](https://pkg.go.dev/github.com/o3co/go.hocon) | HOCON parser for Go (used by this project) |
 | [ts.hocon](https://github.com/o3co/ts.hocon) | TypeScript | [npm](https://www.npmjs.com/package/@o3co/ts.hocon) | HOCON parser for TypeScript/Node.js |
-| [rs.hocon](https://github.com/o3co/rs.hocon) | Rust | [crates.io](https://crates.io/crates/o3co-hocon) | HOCON parser for Rust |
+| [rs.hocon](https://github.com/o3co/rs.hocon) | Rust | [crates.io](https://crates.io/crates/hocon-parser) | HOCON parser for Rust |
+| [py.hocon](https://github.com/o3co/py.hocon) | Python | [PyPI](https://pypi.org/project/hocon-parser/) | HOCON parser for Python |
 
-All implementations are full Lightbend HOCON spec compliant.
+The four parser implementations are tracked against the same Lightbend HOCON spec — see the [cross-implementation roll-up](https://github.com/o3co/xx.hocon/blob/main/docs/compliance-matrix.md) for each one's conformance rate.
 
 ## Best Practices
 
