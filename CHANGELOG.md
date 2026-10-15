@@ -6,6 +6,35 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed — go.hocon 1.14.0: number reading, exact units, typed integrations
+
+The parser and adapters move from v1.13.0 to v1.14.0. What reaches hocon2's
+converters (every output format alike — JSON, YAML, TOML, Properties):
+
+- **BREAKING: a token that starts like a number is read the way Lightbend
+  reads it.** Values that were strings become numbers — `a = 1.`, `-1.`,
+  `1.e5`, `-.5` now convert to `1`, `-1`, `100000`, `-0.5` (were `"1."`
+  etc.) — and `1.e+5` / `-.5e+3`, which were errors, convert to numbers.
+  Inputs such as `a = 1e+5.5` or `a = x 1e+5.5` (a run that is not a number
+  and contains `+`) and a numeric key written directly before `+=`
+  (`1+= 2`) are now parse errors. **Workaround**: quote the value to keep a
+  string (`a = "1."`); write a space before `+=` (`1 += 2`).
+- **A concatenation element that fails to parse is now an error instead of
+  being dropped**: `a = prefix 1e999` converted to `"a": "prefix"`, silently
+  losing data; it now fails with `invalid float`.
+- In a key that starts with a number, whitespace after a trailing dot is kept,
+  as on every other key path: `123foo. bar = 1` converts to
+  `{"123foo": {" bar": 1}}` (was `"bar"`).
+- Not visible in hocon2: the exact duration / byte-size arithmetic, the
+  duration overflow error, exponent forms in unit values and `ByteSize` /
+  `Period` apply to go.hocon's typed getters, which hocon2 does not use — unit
+  values still convert as the text written. The reverse converters
+  (`json2hocon` and siblings) are unaffected: strings such as `"1."` or `"-.5"`
+  are emitted quoted and round-trip exactly.
+
+Full detail in the
+[go.hocon 1.14.0 release notes](https://github.com/o3co/go.hocon/releases/tag/v1.14.0).
+
 ## [0.8.0] - 2026-08-26
 
 ### Changed — go.hocon 1.13.0: the four-implementation spec-correction release
